@@ -25,7 +25,7 @@ database:
 issue_tracker:
   issue_tracker: Jira # Issue tracking tool (e.g. Jira)
   issue_tracker_cli: acli # CLI command to query tickets (e.g. acli (Jira) / gh issue (GitHub))
-  atlassian_url: 'https://upexgalaxy67.atlassian.net/' # Atlassian site base URL (e.g. https://company.atlassian.net) — same value as .env's ATLASSIAN_URL
+  atlassian_url: 'https://upexgalaxy69.atlassian.net/' # Atlassian site base URL (e.g. https://company.atlassian.net) — same value as .env's ATLASSIAN_URL
 
 testing:
   default_env: staging # Default testing environment — must match a key under `environments:` (e.g. staging)
