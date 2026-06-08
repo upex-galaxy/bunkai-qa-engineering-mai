@@ -190,6 +190,49 @@ export interface BackupTest {
   gherkin?: string
   unstructured?: string
   labels?: string[]
+  /** Test Repository folder path (e.g. `/Regression/Login`). Root tests omit this. */
+  folderPath?: string
+  /** Original keys of Preconditions associated with this Test. */
+  preconditionKeys?: string[]
+  /**
+   * Original keys of requirement/story issues this Test covers.
+   * Recorded for reference only — coverage is a Jira issue-link and is carried
+   * by a native Jira project migration, so restore does NOT re-create it.
+   */
+  coverageKeys?: string[]
+}
+
+/** A Precondition issue (Xray) captured for backup. */
+export interface BackupPrecondition {
+  originalKey: string
+  issueId: string
+  summary: string
+  description?: string
+  /** Precondition type name: `Manual` | `Generic` | `Cucumber`. */
+  preconditionType: 'Manual' | 'Generic' | 'Cucumber'
+  definition?: string
+  labels?: string[]
+  folderPath?: string
+}
+
+/**
+ * Shared shape for the two test-container issue types — Test Plan and Test Set.
+ * Membership is stored as original Test keys; restore remaps them to the
+ * destination issueIds via the key map.
+ */
+export interface BackupTestContainer {
+  originalKey: string
+  issueId: string
+  summary: string
+  description?: string
+  testKeys: string[]
+}
+
+/** A Test Repository folder and the Tests it directly contains. */
+export interface BackupFolder {
+  /** Absolute folder path, e.g. `/Regression/Login`. */
+  path: string
+  testKeys: string[]
 }
 
 export interface BackupTestRunStep {
@@ -216,14 +259,45 @@ export interface BackupExecution {
   testRuns: BackupTestRun[]
 }
 
+/**
+ * Snapshot of the source project's Xray configuration, captured at export time
+ * so `backup preflight` can diff it against the destination. Config cannot be
+ * written via the Xray API — this drives a manual setup checklist.
+ */
+export interface BackupProjectSettings {
+  /** Test type names defined for the project (e.g. Manual, Generic, Cucumber, + customs). */
+  testTypes: string[]
+  /** Default test type name, if resolvable. */
+  defaultTestType?: string
+  /** Test Run status names in use/available (from getStatuses). */
+  runStatuses: string[]
+  /** Configured Test Environments. */
+  testEnvironments: string[]
+  /** Issue type names treated as defects. */
+  defectIssueTypes: string[]
+}
+
 export interface BackupData {
   exportedAt: string
   project: string
+  /** Backup schema version. `1.0` = tests + executions only. `2.0` adds preconditions, plans, sets, folders. */
   version: string
   testsCount: number
   executionsCount: number
+  /** v2.0 counts — absent in v1.0 backups. */
+  preconditionsCount?: number
+  testPlansCount?: number
+  testSetsCount?: number
+  foldersCount?: number
   tests: BackupTest[]
   executions: BackupExecution[]
+  /** v2.0 entity arrays — absent in v1.0 backups; restore treats them as empty. */
+  preconditions?: BackupPrecondition[]
+  testPlans?: BackupTestContainer[]
+  testSets?: BackupTestContainer[]
+  folders?: BackupFolder[]
+  /** Source Xray config snapshot for `preflight` diffing (v2.0+; may be absent). */
+  projectSettings?: BackupProjectSettings
 }
 
 // ============================================================================

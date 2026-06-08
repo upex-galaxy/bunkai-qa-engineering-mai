@@ -114,7 +114,12 @@ COMPONENTES: ${COMPONENTS.map(c => c.name).join(', ')}
 ATAJOS:      all, rollback, help
 
 FLAGS:
-  --auto                 Modo no-interactivo (CI)
+  --auto                 Modo no-interactivo: sincroniza TODO el boilerplate
+                         (copia archivos nuevos + sobreescribe divergencias con
+                         la versión upstream). NO borra archivos que upstream
+                         eliminó. El boilerplate es canónico (match 1:1).
+  --force                Como --auto pero TAMBIÉN borra archivos que el upstream
+                         eliminó. Hay backup + --rollback de respaldo.
   --dry-run              Preview, sin escribir
   --rollback             Restaura backup mas reciente
   --skill a,b,c          Sincroniza solo los skills indicados (subcomando skills)
@@ -127,7 +132,8 @@ EJEMPLOS:
   bun up skills --skill a,b,c            # Skills especificos
   bun up --list                          # Listar skills disponibles
   bun up commands docs                   # Multiples componentes
-  bun up --auto                          # CI mode
+  bun up --auto                          # CI mode (seguro, preserva lo tuyo)
+  bun up --force                         # Forzar todo del upstream (sin preguntar)
   bun up --dry-run                       # Preview
   bun up --rollback                      # Restaurar backup
 `;
@@ -281,6 +287,43 @@ function makeEnvDriftHook(
   };
 }
 
+// --- SKILLS REGISTRY REGEN (afterApply hook) ---
+//
+// REGISTRY.md is excluded from the sync (it is a generated, per-repo file). When
+// the `skills` component changed this run, regenerate it locally so it reflects
+// the repo's ACTUAL skill set — newly synced framework skills PLUS any local
+// community skills (resend, playwright-*) the boilerplate never ships. Without
+// this, the next `skills:registry:check` (pre-push) would flag the registry as
+// stale after a sync that added or changed skills.
+function makeSkillsRegistryHook(
+  sink: ReportSink,
+): (summary: RunSummary) => Promise<void> {
+  return async (summary: RunSummary): Promise<void> => {
+    const skillsTouched = summary.applied.some(a => a.entry.path.startsWith('.claude/skills/'));
+    if (!skillsTouched) { return; }
+    sink.step('Regenerando `.claude/skills/REGISTRY.md` (skills cambiaron)…');
+    const res = spawnSync('bun', ['run', 'skills:registry'], { stdio: 'inherit' });
+    if (res.status !== 0) {
+      sink.warn('No se pudo regenerar REGISTRY.md. Ejecuta `bun run skills:registry` manualmente.');
+    }
+  };
+}
+
+/** Run several afterApply hooks in sequence (each isolated; one failure warns, never aborts). */
+function composeHooks(
+  sink: ReportSink,
+  ...hooks: Array<(summary: RunSummary) => Promise<void>>
+): (summary: RunSummary) => Promise<void> {
+  return async (summary: RunSummary): Promise<void> => {
+    for (const hook of hooks) {
+      try { await hook(summary); }
+      catch (err) {
+        sink.warn(`afterApply hook falló: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+  };
+}
+
 // --- SKILLS RESOLVER (used by --list short-circuit and runtime hook) ---
 function resolveTemplateSkills(templateDir: string): string[] {
   const skillsRoot = path.join(templateDir, SKILLS_CANONICAL_DIR);
@@ -410,6 +453,21 @@ function buildSink(): ReportSink {
         required: false,
       });
       return abortOnCancel<string[]>(r);
+    },
+
+    resolvePackageJsonKey: async (file, section, key, drift) => {
+      const body = `=== Tu versión (local) ===\n${drift.localValue}\n\n=== Versión del boilerplate (upstream) ===\n${drift.upstreamValue}`;
+      tui.note(body, `${file} → ${section}.${key}`);
+      const r = await tui.select({
+        message: `${section}.${key} difiere — ¿qué hacemos?`,
+        options: [
+          { value: 'mine', label: 'Mantener la mía (predeterminado)' },
+          { value: 'theirs', label: 'Actualizar a la del boilerplate' },
+          { value: 'skip', label: 'Decidir después (preguntar de nuevo)' },
+        ],
+        initialValue: 'mine',
+      });
+      return abortOnCancel<string>(r) as 'theirs' | 'mine' | 'skip';
     },
 
     resolveDiverged: async (entry, diff) => {
@@ -544,13 +602,29 @@ async function main(): Promise<void> {
       '.agents/jira-link-types.json',
       '.agents/jira-required.yaml',
     ],
+    // Files inside a synced component that must NEVER be overwritten by the sync:
+    //  - REGISTRY.md: generated, per-repo (rebuilt by makeSkillsRegistryHook).
+    //  - scripts/api-login.ts: project-adapted auth CLI (override points for the
+    //    project's auth flow). Shipped once via the create-* scaffold tarball,
+    //    then owned by the project — re-syncing would clobber the adaptation.
+    excludePaths: [
+      path.join(SKILLS_CANONICAL_DIR, 'REGISTRY.md').replace(/\\/g, '/'),
+      'scripts/api-login.ts',
+    ],
     selfUpdateComponent: 'cli',
     hooks: {
       skillsResolver: resolveTemplateSkills,
-      // Env-var drift detection: runs while the upstream clone still sits in
-      // TEMP_DIR (cleanup happens after afterApply). Dry-run skips the offer —
-      // nothing was applied, so there is no drift to act on yet.
-      afterApply: parsed.dryRun ? undefined : makeEnvDriftHook(TEMP_DIR, sink, parsed.auto),
+      // afterApply runs while the upstream clone still sits in TEMP_DIR (cleanup
+      // happens after). Regenerate the skills registry first (reflects the new
+      // skill set), then run env-var drift detection. Dry-run skips both —
+      // nothing was applied, so there is nothing to regenerate or act on.
+      afterApply: parsed.dryRun
+        ? undefined
+        : composeHooks(
+            sink,
+            makeSkillsRegistryHook(sink),
+            makeEnvDriftHook(TEMP_DIR, sink, parsed.auto),
+          ),
     },
   };
 

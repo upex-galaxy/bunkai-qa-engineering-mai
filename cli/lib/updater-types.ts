@@ -59,6 +59,13 @@ export interface IgnoreFileSyncState {
 export interface PackageJsonSectionSyncState {
   lastSyncedSha: string // blob SHA of the upstream package.json when last compared
   appliedKeys: string[] // keys previously appended via applyPackageJsonAppend (de-dup source)
+  // Keys the user explicitly chose to keep-local ('mine') against a specific
+  // upstream value. Keyed by key name → the upstream value at decision time.
+  // detectPackageJsonDelta skips surfacing a diverged key while its recorded
+  // upstream value is unchanged, so "Mantener la mía" stops re-prompting until
+  // the upstream value itself changes again. 'skip' is NOT recorded here (it
+  // re-prompts on the next run by design).
+  keptKeys?: Record<string, string>
 }
 
 export interface PackageJsonSyncState {
@@ -387,6 +394,22 @@ export interface ReportSink {
    * is safe — mirror of `--auto` policy for ignore-line append).
    */
   pickPackageJsonKeys?: (file: string, section: string, keys: PackageJsonKeyOption[]) => Promise<string[]>
+  /**
+   * Optional Phase-4.5b hook: resolve a single diverged package.json key (same
+   * key present locally and upstream with different values). Returns:
+   *   - 'theirs' → overwrite the local value with the upstream value
+   *   - 'mine'   → keep the local value AND record it so it stops re-prompting
+   *                (until the upstream value changes again)
+   *   - 'skip'   → keep the local value, do NOT record (re-prompts next run)
+   * If not implemented, the core keeps the local value (CI-safe default) and
+   * only emits the FYI warn.
+   */
+  resolvePackageJsonKey?: (
+    file: string,
+    section: string,
+    key: string,
+    drift: { localValue: string, upstreamValue: string },
+  ) => Promise<'theirs' | 'mine' | 'skip'>
   resolveDiverged: (entry: DeltaEntry, diff: PairedDiff) => Promise<Resolution>
   confirmDelete: (entry: DeltaEntry) => Promise<boolean>
   /**
@@ -416,6 +439,15 @@ export interface UpdaterConfig {
   packageJsonSpecs?: PackageJsonSpec[]
   deprecatedFiles: DeprecatedFile[]
   bootstrapOnlyPaths: string[]
+  /**
+   * Generated, per-repo files that live INSIDE a synced component but must NEVER
+   * be synced (each repo regenerates its own). Matched by exact repo-relative
+   * path. Excluded from every detection path — bootstrap, content reconcile, and
+   * git-log delta — so they are never copied, overwritten, or deleted.
+   * Example: `.claude/skills/REGISTRY.md` (built by `bun run skills:registry`
+   * from the repo's own installed skill set, including local community skills).
+   */
+  excludePaths?: string[]
   agentsFrameworkFiles?: string[]
   /**
    * Optional component name (e.g. `'cli'`) whose files contain the updater itself.

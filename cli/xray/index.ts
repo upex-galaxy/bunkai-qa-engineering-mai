@@ -175,19 +175,48 @@ ${colors.bold}IMPORT RESULTS${colors.reset}
                      --file <path>      JSON file path (required)
 
 ${colors.bold}BACKUP & RESTORE${colors.reset}
-  backup export      Export all Xray data from a project
-                     --project <key>    Project key (required)
-                     --output <file>    Output file path
-                     --include-runs     Include test execution runs and statuses
-                     --only-with-data   Only export tests with Xray data (steps, gherkin, definition)
+  backup export      Export the full Xray footprint of a project (v2.0):
+                     tests, preconditions, test plans, test sets, repository
+                     folders, and (opt-in) executions + run statuses.
+                     --project <key>    Project key (required unless --all)
+                     --all              Export EVERY project on the site that has
+                                        Xray data into .backups/<KEY>-backup.json
+                                        (lists projects via Jira, 504-resilient)
+                     --output <file>    Output file path (single-project mode)
+                     --include-runs     Include test executions + run statuses
+                     --only-with-data   Only tests with Xray data (steps/gherkin/definition)
                      --limit <n>        Batch size for fetching (default: 100)
+                     --tests-only       Legacy v1.0 shape: tests only
+                     --no-preconditions / --no-plans / --no-sets / --no-folders
+                                        Skip a specific entity type
+                     --no-coverage      Drop the coverableIssues subquery
+                                        (record-only; fixes CloudFront 504 on
+                                        projects with heavy requirement coverage)
 
-  backup restore     Restore Xray data to a project
+  backup restore     Restore Xray data into a project. Order: preconditions ->
+                     tests (+folder +precondition links) -> folders -> sets ->
+                     plans -> executions (+run statuses). v1.0 backups also work.
                      --file <path>      Backup file path (required)
                      --project <key>    Target project key (required)
                      --dry-run          Preview changes without making them
-                     --sync             Update existing tests instead of creating duplicates
+                     --sync             Match existing issues by KEY (needs target
+                                        Jira creds) instead of creating duplicates
                      --map-keys <file>  CSV file with old_key,new_key mappings
+
+                     CROSS-SITE: Xray addresses by numeric issueId (re-assigned
+                     per site); a Jira migration preserves the KEY. Use --sync so
+                     restore re-resolves ids by key. Re-run 'auth login' to switch
+                     sites between export and restore (one site per session).
+
+  backup preflight   Compare a backup's captured source config with the live
+                     destination config and report what to create MANUALLY on the
+                     destination before import (test types, run statuses, test
+                     environments, defect types). Read-only — Xray has no
+                     config-write API. Run it while authed to the DESTINATION.
+                     --file <path>      Single backup file
+                     --dir <dir>        Directory of *-backup.json (default .backups/)
+                     --project <key>    Override destination project key
+                                        (default: each backup's own key)
 
 ${colors.bold}REPAIR${colors.reset}
   repair             Bulk Jira-layer ↔ Xray-layer reconciliation across a project.
@@ -446,9 +475,12 @@ async function main(): Promise<void> {
           case 'restore':
             await backup.restore(flags);
             break;
+          case 'preflight':
+            await backup.preflight(flags);
+            break;
           default:
             log.error(`Unknown backup command: ${subcommand}`);
-            log.info('Available: export, restore');
+            log.info('Available: export, restore, preflight');
         }
         break;
 

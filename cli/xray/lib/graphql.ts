@@ -248,7 +248,94 @@ export const QUERIES = {
           steps { id action data result }
           gherkin
           unstructured
+          folder { path }
+          preconditions(limit: 100) {
+            results { issueId jira(fields: ["key"]) }
+          }
+          coverableIssues(limit: 100) {
+            results { issueId jira(fields: ["key"]) }
+          }
           jira(fields: ["key", "summary", "description", "labels"])
+        }
+      }
+    }
+  `,
+
+  // Lighter variant without the coverableIssues subquery. Coverage is
+  // record-only (never used by restore) and its resolver can be slow enough to
+  // 504 on projects with heavy requirement coverage — use this via
+  // `backup export --no-coverage` when the full query times out.
+  getTestsFullDataNoCoverage: `
+    query GetTestsFullDataNoCoverage($jql: String, $limit: Int!, $start: Int!) {
+      getTests(jql: $jql, limit: $limit, start: $start) {
+        total
+        start
+        limit
+        results {
+          issueId
+          projectId
+          testType { name kind }
+          steps { id action data result }
+          gherkin
+          unstructured
+          folder { path }
+          preconditions(limit: 100) {
+            results { issueId jira(fields: ["key"]) }
+          }
+          jira(fields: ["key", "summary", "description", "labels"])
+        }
+      }
+    }
+  `,
+
+  getPreconditionsFullData: `
+    query GetPreconditionsFullData($jql: String, $limit: Int!, $start: Int!) {
+      getPreconditions(jql: $jql, limit: $limit, start: $start) {
+        total
+        start
+        limit
+        results {
+          issueId
+          preconditionType { name kind }
+          definition
+          folder { path }
+          jira(fields: ["key", "summary", "description", "labels"])
+        }
+      }
+    }
+  `,
+
+  getTestPlansFullData: `
+    query GetTestPlansFullData($jql: String, $limit: Int!, $start: Int!) {
+      getTestPlans(jql: $jql, limit: $limit, start: $start) {
+        total
+        start
+        limit
+        results {
+          issueId
+          jira(fields: ["key", "summary", "description"])
+          tests(limit: 100) {
+            total
+            results { issueId jira(fields: ["key"]) }
+          }
+        }
+      }
+    }
+  `,
+
+  getTestSetsFullData: `
+    query GetTestSetsFullData($jql: String, $limit: Int!, $start: Int!) {
+      getTestSets(jql: $jql, limit: $limit, start: $start) {
+        total
+        start
+        limit
+        results {
+          issueId
+          jira(fields: ["key", "summary", "description"])
+          tests(limit: 100) {
+            total
+            results { issueId jira(fields: ["key"]) }
+          }
         }
       }
     }
@@ -279,6 +366,29 @@ export const QUERIES = {
             }
           }
         }
+      }
+    }
+  `,
+
+  getProjectSettings: `
+    query GetProjectSettings($projectIdOrKey: String!) {
+      getProjectSettings(projectIdOrKey: $projectIdOrKey) {
+        projectId
+        testEnvironments
+        defectIssueTypes
+        testTypeSettings {
+          testTypes { id name kind }
+          defaultTestTypeId
+        }
+      }
+    }
+  `,
+
+  getStatuses: `
+    query GetStatuses {
+      getStatuses {
+        name
+        final
       }
     }
   `,
@@ -380,6 +490,75 @@ export const MUTATIONS = {
           name
           kind
         }
+      }
+    }
+  `,
+
+  createPrecondition: `
+    mutation CreatePrecondition(
+      $preconditionType: UpdatePreconditionTypeInput!,
+      $definition: String,
+      $projectKey: String!,
+      $summary: String!,
+      $description: String,
+      $labels: [String],
+      $folderPath: String
+    ) {
+      createPrecondition(
+        preconditionType: $preconditionType,
+        definition: $definition,
+        folderPath: $folderPath,
+        jira: {
+          fields: {
+            summary: $summary,
+            description: $description,
+            labels: $labels,
+            project: { key: $projectKey }
+          }
+        }
+      ) {
+        precondition {
+          issueId
+          preconditionType { name }
+          jira(fields: ["key", "summary"])
+        }
+        warnings
+      }
+    }
+  `,
+
+  updatePrecondition: `
+    mutation UpdatePrecondition($issueId: String!, $data: UpdatePreconditionInput!) {
+      updatePrecondition(issueId: $issueId, data: $data) {
+        issueId
+        definition
+      }
+    }
+  `,
+
+  addPreconditionsToTest: `
+    mutation AddPreconditionsToTest($issueId: String!, $preconditionIssueIds: [String]!) {
+      addPreconditionsToTest(issueId: $issueId, preconditionIssueIds: $preconditionIssueIds) {
+        addedPreconditions
+        warning
+      }
+    }
+  `,
+
+  createFolder: `
+    mutation CreateFolder($projectId: String, $path: String!, $testIssueIds: [String]) {
+      createFolder(projectId: $projectId, path: $path, testIssueIds: $testIssueIds) {
+        folder { path testsCount }
+        warnings
+      }
+    }
+  `,
+
+  addTestsToFolder: `
+    mutation AddTestsToFolder($projectId: String, $path: String!, $testIssueIds: [String]!) {
+      addTestsToFolder(projectId: $projectId, path: $path, testIssueIds: $testIssueIds) {
+        folder { path testsCount }
+        warnings
       }
     }
   `,
