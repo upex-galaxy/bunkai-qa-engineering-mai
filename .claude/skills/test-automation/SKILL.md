@@ -69,6 +69,25 @@ Canonical reading order for any AI starting cold on a test-automation workflow. 
 
 ---
 
+## Readiness Preflight Gate (MANDATORY — runs before Phase 0)
+
+> Full doctrine: `agentic-qa-core/references/preflight-gate.md`. Runs FIRST, before the resume check and scope picker. Two laws: (1) **args-as-answers** — the scope, ticket key, and "API test" vs "E2E test" are provided args; ask only the gaps. (2) **probe, don't assume**. Surface gaps + REDs as ONE `AskUserQuestion` checklist; self-fix with approval + explanation; STOP on any blocking RED. Note: this is distinct from the **anti-duplication** "Pre-flight checklist" inside Phase 1 (which cross-checks `kata-manifest.json` for reuse) — this gate is about tools + env being ready to write and run code. **Generic baseline** (env resolution, test-user creds, secret/restart handling, the two laws, output contract) is inherited from the reference §3.1 — not repeated here. Below is only this skill's **specific capability delta**.
+
+| Capability | Need | Why here |
+|---|---|---|
+| Framework adapted (artifacts present) | REQUIRED | Cannot write project ATCs against the generic `Example*` scaffolds the boilerplate ships. Probe the reference §4 ADAPTED signals; still generic → STOP and tell the user to run `/project-discovery` → `/adapt-framework` themselves. The gate NEVER auto-runs them. |
+| Dev toolchain | REQUIRED | The Review gate runs `bun run test` / `bun run types:check` / `bun run lint:check`. Resolve them at t=0, not at Phase 3. `bun install` if a dep is missing. |
+| `kata-manifest.json` clean | REQUIRED | Anti-duplication source of truth (Critical Rule #12). `bun run kata:manifest:check` clean before proposing components/ATCs; `bun run kata:manifest` if stale. |
+| Active env + test-user creds | REQUIRED | Authored tests run live against `<<ACTIVE_ENV>>`. Env reachable + `.env` creds for the env (per role if multi-role). |
+| Playwright browsers | REQUIRED | `bunx playwright` resolves + chromium installed (`bun run pw:install`). |
+| OpenAPI MCP + `API_TOKEN` + `api/schemas/` synced | SCOPE — API/integration tests; needed at **Phase 1 Plan** too | Phase 1 explores endpoints (via the `openapi` MCP) to design ATCs + classify test-data — so the MCP is plan-time, not just run-time. Api components consume OpenAPI-derived types (`api/schemas/`; refresh `bun run api:sync`); authenticated calls need a live `API_TOKEN` (api-login flow, reference §6 → RESTART). |
+| DBHub MCP | SCOPE — data setup/validation; needed at **Phase 1 Plan** too | Phase 1 explores the schema (via the `dbhub` MCP) to design data fixtures (Discover / Modify / Generate) — plan-time, not just run-time. `dbhub` answers a schema probe; `DBHUB_*` in `.env`. Unset → fill `.env` + RESTART. |
+| Issue-tracker (`[ISSUE_TRACKER_TOOL]`) | SCOPE — ticket/regression-driven | ATP + AC reads via `bun run jira:sync-issues`; TMS modality for the ATP source. Pure module-driven from an existing spec may not need it. |
+
+Surfaces (UI vs API vs both) follow the chosen planning scope + the ATCs Phase 1 designs — NEVER a user question (reference §5). After the gate clears (generic baseline + the surface tools the scope needs GREEN), continue to Phase 0 below.
+
+---
+
 ## Phase 0 — Resume check (MANDATORY, inline)
 
 Before picking the planning scope, run the session resume contract from `agentic-qa-core/references/session-management.md` §4:
@@ -247,6 +266,7 @@ Rules:
 14. **Ticket ID prefix in every `test()`.** Format: `test('TICKET-ID: should {behavior} when {condition}', ...)`. The `describe` block may also include the ticket ID when the file is tied to a single ticket.
 15. **One component per file, one file per feature.** Components follow `{Resource}Api.ts` or `{Page}Page.ts`. Test files follow `{verb}{Feature}.test.ts` (e.g., `applyDiscount.test.ts`, never `discount.test.ts`).
 16. **Don't propose components or ATCs without consulting the manifest.** `kata-manifest.json` is the registry. Skipping it produces (a) duplicate Pages — proposing `LoginPage` when `LoginPage.ts` already exists; (b) duplicate ATC IDs — minting `@atc('TC-90')` twice; (c) missed reuse — creating `getBookingById` when `BookingsApi.getById` already does it. Always start the Plan phase by loading the manifest. The husky pre-commit gate enforces freshness; Critical Rule #12 in `CLAUDE.md` enforces consultation.
+17. **Cross-cutting test-architecture decisions become ADRs, not plan-buried prose.** When Plan or Code reveals a decision that is architectural AND hard to reverse — a fixture lifecycle reused across 3+ ATCs or 2+ tickets, a test-data-isolation contract, an auth-in-tests change, a flake-retry-policy shift, a Page-Object-vs-Screenplay move — promote it from `planning-playbook.md` §2 "Architecture Decisions" to a standalone `.context/ADR/ADR-NNNN-<slug>.md` and leave a `See ADR-NNNN` backlink. Ticket-local choices stay in the plan. ADRs are append-only: supersede, never rewrite. See `agentic-qa-core/references/adr-doctrine.md`.
 
 ---
 

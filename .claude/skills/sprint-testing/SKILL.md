@@ -120,6 +120,26 @@ Session-start is the universal entry. **Single-ticket mode runs the same 4 dispa
 
 ---
 
+## Readiness Preflight Gate (MANDATORY — runs before Phase 0)
+
+> Full doctrine: `agentic-qa-core/references/preflight-gate.md`. Runs FIRST, before the resume check. Two laws: (1) **args-as-answers** — "QA UPEX-123 on staging" already answers env + scope; "test the login API" already answers the surface (API). Ask only the gaps. (2) **probe, don't assume** — a configured MCP is RED until it actually answers. Surface gaps + REDs as ONE `AskUserQuestion` checklist; self-fix with approval + explanation; STOP on any blocking RED. This is the heaviest gate in the repo because Stage 2 exercises UI + API + DB live. **Generic baseline** (env resolution, test-user creds, secret/restart handling, the two laws, output contract) is inherited from the reference §3.1 — not repeated here. Below is only this skill's **specific capability delta**.
+
+| Capability | Need | Why here |
+|---|---|---|
+| Framework adapted (artifacts present) | REQUIRED | Live QA needs the project wired — `{{WEB_URL}}` / MCP names are `null` on a generic boilerplate. Probe the reference §4 ADAPTED signals; still generic → STOP and tell the user to run `/project-discovery` → `/adapt-framework` themselves. The gate NEVER auto-runs them. |
+| Active env reachable | REQUIRED | Authoring an ATP against a dead env is the highest-cost waste. Probe `{{WEB_URL}}` + `{{API_URL}}` root. This subsumes the env half of Session Start §0.6 — pulled to t=0. |
+| Test-user credentials + roles | REQUIRED | `<<ACTIVE_ENV>>` creds in `.env`. Ask how many roles the ticket needs; one token per role via `scripts/api-login.ts`. |
+| Issue-tracker (`[ISSUE_TRACKER_TOOL]`) + TMS modality | REQUIRED | All ATP/ATR/QA-comment/transition writes go to Jira. Load `/acli`; resolve modality; load `/xray-cli` + `XRAY_*` if jira-xray. |
+| OpenAPI MCP + valid `API_TOKEN` | SCOPE — when API surface is in scope | The `openapi` MCP invokes endpoints **authenticated**. If the token is missing/expired → run the api-login flow (reference §6): `bun run api:login:<env>` writes `API_TOKEN` to `.env`; then the user must **restart the agent** so the MCP re-spawns. Generic spec → `/adapt-framework`. |
+| DBHub MCP | SCOPE — when DB validation is in scope | The trifuerza DB leg. Probe `dbhub` lists schema/tables; `DBHUB_*` in `.env`. Unset → user fills `.env` + RESTART (spawn-time). |
+| Playwright / `/playwright-cli` | SCOPE — when UI surface is in scope | Smoke + UI exploration. Browser present (`bun run pw:install` if not). |
+| Email (`resend`) — can RECEIVE | SCOPE — magic-link / auth-token tickets only | Subsumes the inbox half of Session Start §0.6. A send-only provider cannot complete a magic-link flow → STOP before Stage 1. |
+| `kata-manifest.json` | OPTIONAL | Only load-bearing at the Stage 3 → `/test-automation` handoff (anti-duplication). |
+
+Surfaces (UI / API / DB / code-review-only) are decided by **Stage 1 Planning's triage + veto + risk-scoring** — NEVER asked of the user (reference §5). The gate only probes and reports which surface tools are ready; Stage 1 reads that report and picks the trifuerza subset on its own. A scope-conditional tool stays REQUIRED only once Stage 1 selects its surface — if RED then, surface the remedy at that point. Session Start §0.6 stays as written — this gate is its t=0 generalization, not a replacement. After the gate clears (generic baseline + any already-evident surface tools GREEN), continue to Phase 0 below.
+
+---
+
 ## Phase 0 — Session resume check (MANDATORY, inline)
 
 Before Session Start dispatch, run the resume contract from `agentic-qa-core/references/session-management.md` §4:
@@ -301,6 +321,7 @@ All references are self-contained. Load one at a time.
 - **S12.** NEVER file a bug without a reproducible repro path AND evidence (screenshot, trace, log, network HAR, or DB row reference). "It failed for me once" is not a bug ticket.
 - **S13.** NEVER hardcode `customfield_NNNNN` IDs in ATP / ATR / QA comments or in any reference under this skill. Resolve every Jira field via `{{jira.<slug>}}` against `.agents/jira-required.yaml`.
 - **S14.** NEVER hand-write a Jira-mirrored `.md` in the PBI folder (`story.md`, `acceptance-criteria.md`, `acceptance-test-plan.md`, `acceptance-test-results.md`, `comments.md`, `feature-test-plan.md`, etc.). To SET their content: author it → write to the Jira custom field via `[ISSUE_TRACKER_TOOL]` (or, when the field is absent, a structured comment per `.agents/jira-required.yaml` `fallback:`) → run `bun run jira:sync-issues get <KEY> --include-comments` → READ the materialized file. Only `context.md`, `test-session-memory.md`, `module-context.md`, and `evidence/` are hand-authored locally.
+- **S15.** NEVER bury a hard-to-reverse test-architecture decision in a ticket plan. If Stage 1 planning forces a decision that is architectural AND hard to reverse (test-data-isolation contract, auth-in-tests change, fixture topology, flake-retry policy spanning 3+ tests or 2+ tickets), promote it to `.context/ADR/ADR-NNNN-<slug>.md` (append-only; supersede, never edit) and leave a `See ADR-NNNN` backlink in the plan's `## Technical Decisions`. Ticket-local trade-offs stay in the plan. AI drafts `Proposed`; the human approves. See `agentic-qa-core/references/adr-doctrine.md` §1–§2.
 
 ---
 

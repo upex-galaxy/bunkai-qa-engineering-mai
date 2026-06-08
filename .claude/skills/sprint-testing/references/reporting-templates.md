@@ -7,6 +7,7 @@ Stage 3 Reporting artifacts for in-sprint QA: ATR Test Report body, bug report t
 This reference is for manual, in-sprint reporting RIGHT NOW. It does NOT cover Stage 4 formal TMS documentation or ROI scoring (see `test-documentation`), Bug Analysis *planning* variant inside an ATP (see `acceptance-test-planning.md`), or automation review artifacts (see `test-automation`).
 
 > **Before publishing ATR / bug-report / QA comment bodies to Jira rich-text fields**, read `../../agentic-qa-core/references/jira-publishing-gotchas.md` — covers the two ADF conversion gotchas (`md-to-adf` mark collision + MCP batched custom-field rejection) that silently fail HTTP 400.
+> **And format for readability** per `../../acli/references/adf-authoring-style.md` — an ATR reads far better as a table (test case → status) with a `[!WARNING]` / `[!ERROR]` panel for blockers than as flat indented prose; steps-to-reproduce read best as an ordered list or table.
 
 ---
 
@@ -70,6 +71,15 @@ _RELATED STORIES_
 * Related: [{{PROJECT_KEY}}-XXX]
 * Blocks: [other issues]
 ```
+
+**Attach visual evidence** (screenshot of the failing UI, console capture, repro recording). `![](path)` does NOT embed in Jira — use the bundled helper, which uploads the file and posts it inline as a real image:
+
+```bash
+bun .claude/skills/acli/scripts/jira-attach-media.ts {{PROJECT_KEY}}-<bug> ./evidence/repro-step-3.png \
+  --caption "Step 3 — validation error not shown" --publish
+```
+
+One call per evidence file (the image is embedded as a comment on the bug). Full recipe + when-to-use in `../../acli/references/adf-authoring-style.md` §media. This is the high-value case: a reviewer sees the failing screen inline instead of clicking through to the Attachments panel.
 
 ### 1.4 Severity matrix
 
