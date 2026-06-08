@@ -6,7 +6,7 @@
 
 project:
   project_name: Bunkai # Project name (e.g. MyProject)
-  project_key: null # TODO: Project key in issue tracker (e.g. PROJ, ACME, UPEX). The boilerplate ships this `null` on purpose — the consumer project fills it; never hardcode a real key here.
+  project_key: BK # Project key in issue tracker (e.g. PROJ, ACME, UPEX). The boilerplate ships this `null` on purpose — the consumer project fills it; never hardcode a real key here.
   webapp_domain: upexbunkai.vercel.app # Domain of the web application under test (e.g. myproject.com)
 
 backend:
