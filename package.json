@@ -43,7 +43,7 @@
     "api:login:staging": "bun scripts/api-login.ts staging",
     "api:login": "bun scripts/api-login.ts",
     "api:sync": "bun scripts/sync-openapi.ts",
-    "claude": "dotenv -e .env -- claude",
+    "claude": "bash -c 'set -a; . ./.env; set +a; exec claude \"$@\"' --",
     "format:check": "prettier --check '**/*.{json,yml,yaml,css,scss,html}' --ignore-path .prettierignore",
     "format:fix": "prettier --write '**/*.{json,yml,yaml,css,scss,html}' --ignore-path .prettierignore",
     "jira:check": "bun scripts/check-jira-setup.ts",
@@ -57,7 +57,7 @@
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "onboarding": "bun scripts/onboarding.ts",
-    "opencode": "dotenv -e .env -- opencode",
+    "opencode": "bash -c 'set -a; . ./.env; set +a; exec opencode \"$@\"' --",
     "prepare": "husky",
     "pw:install": "playwright install --with-deps chromium",
     "repo:check": "bun run format:check && bun run lint:check && bun run types:check && bun run vars:check && bun run skills:check && bun run skills:registry:check && bun run vars:env:check",
@@ -84,7 +84,8 @@
     "up": "bun cli/update-boilerplate.ts",
     "vars:check": "bun scripts/lint-vars.ts",
     "vars:env:check": "bun scripts/check-vars.ts",
-    "xray": "bun cli/xray/index.ts"
+    "xray": "bun cli/xray/index.ts",
+    "env": "set -a; source .env; set +a"
   },
   "dependencies": {
     "@clack/prompts": "^1.4.0",
