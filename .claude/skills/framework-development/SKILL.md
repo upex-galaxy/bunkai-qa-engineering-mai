@@ -55,6 +55,21 @@ This skill is compliant with the doctrine in `CLAUDE.md` §"Orchestration Mode (
 
 ---
 
+## Readiness Preflight Gate (MANDATORY — runs before Phase 0)
+
+> Full doctrine: `agentic-qa-core/references/preflight-gate.md`. Runs FIRST, before the path self-check and resume check. Two laws: (1) **args-as-answers** — the change name and touched paths are provided args; ask only the gaps. (2) **probe, don't assume**. Surface gaps + REDs as ONE `AskUserQuestion` checklist; self-fix with approval + explanation; STOP on any blocking RED. This skill evolves the framework itself — it does NOT hit a live env, Jira, DB, or API — so its gate is a **dev-toolchain readiness** check that pairs with the Phase 0 path self-check. **Generic baseline** (the two laws, secret/restart handling, output contract) is inherited from the reference §3.1 — not repeated here; the env/creds half of the baseline is N/A for meta-work. Below is only this skill's **specific capability delta**.
+
+| Capability | Need | Why here |
+|---|---|---|
+| Dev toolchain | REQUIRED | Phase 3 Verify runs `bun run test` / `bun run types:check` / `bun run lint:check` / `bun run skills:check`. All four must resolve at t=0. `bun install` if a dep is missing. |
+| `kata-manifest.json` clean | REQUIRED | Source of truth (Critical Rule #12). Framework changes can invalidate it — `bun run kata:manifest:check` clean, `bun run kata:manifest` to regenerate. |
+| Playwright browsers | SCOPE — touching fixtures / KATA bases / tests | Verify of a fixture or base-class change runs the suite, which needs chromium (`bun run pw:install`). |
+| `/github-actions-docs` + `/playwright-best-practices` | OPTIONAL | Injected per dispatch when the change touches CI YAML or fixtures/tests (already noted in the briefing skeleton). |
+
+Active env, test-user creds, OpenAPI/`API_TOKEN`, DBHub, issue-tracker, TMS and `resend` are **N/A** — framework evolution is meta-work on this repo. After the gate clears (all REQUIRED GREEN), continue to Phase 0 below.
+
+---
+
 ## Phase 0 — Path self-check + session resume check (mandatory, runs first)
 
 Before invoking any subagent, the orchestrator MUST (a) list the files / directories the change will touch and verify each one against the ALLOWED / FORBIDDEN tables in `references/kata-invariants.md` §10, and (b) run the session resume check per `./session-management.md` §4. Skipping Phase 0 is the most common way framework changes leak into ticket-owned surface area OR lose mid-run state on interruption.
@@ -118,6 +133,8 @@ Dispatch: **Single**. The Plan subagent writes one consolidated artifact at `.se
 
 Present the plan to the user. Wait for approval before Phase 2.
 
+**ADR seeding (framework architecture).** When the chosen approach reshapes the framework's test architecture — KATA layers, fixture APIs, the test runner, the isolation/parallelization model, or the OpenAPI/type pipeline — and the decision passes the two-gate test (architectural AND hard to reverse per `agentic-qa-core/references/adr-doctrine.md` §1), record a `.context/ADR/ADR-NNNN-<slug>.md` after the plan is approved and before Phase 2 coding. Framework evolution is meta-work: its decisions bind every test session that follows, so historicize them rather than leaving them in a one-off `plan.md` that gets archived. The plan's "Invariants touched" / "Public API delta" sections are the prime ADR candidates. Draft `Proposed`; the human accepts. Template + lifecycle: `.context/ADR/README.md`.
+
 ### Phase 2 — Code
 
 Dispatch: **Sequential** — one subagent per task batch. The orchestrator decides batching from the plan's task list; rule of thumb is 1 batch per 3-5 closely-coupled tasks, or 1 batch per task when the task touches a load-bearing file such as `ApiBase.ts` / `UiBase.ts` / `TestContext.ts`.
@@ -170,6 +187,7 @@ Archive is a "close-the-loop" step, not "ship-the-code". Code is shipped by `/gi
 - **F5.** NEVER bump major versions of Playwright / Bun / TypeScript without a regression run on a representative E2E suite. Lockstep upgrades hide breaking changes in fixture lifecycle, locator engines, or type-emit behavior.
 - **F6.** NEVER add a new fixture API without updating `tests/components/TestFixture.ts` (or the matching `ApiFixture.ts` / `UiFixture.ts`) AND `kata-manifest.json` AND citing at least one existing test that consumes it. Orphan fixtures rot — and `kata-manifest.json` is the anti-duplication gate (Critical Rule #12).
 - **F7.** NEVER refactor `cli/install.ts` without testing the full install flow on a clean clone. The installer is the only surface where a bug ships silently to every new user — verification on the developer's already-installed repo proves nothing.
+- **F8.** NEVER introduce a hard-to-reverse test-framework architectural decision (KATA-layer reshape, new fixture API, test-runner swap, isolation/parallelization model) without recording it as an ADR in `.context/ADR/`. Framework evolution binds every later test session — a decision left only in an archived `plan.md` gets re-litigated or silently violated. Draft `Proposed` before Phase 2; the human approves. ADRs are append-only: supersede, never rewrite. See `agentic-qa-core/references/adr-doctrine.md`.
 
 ---
 
