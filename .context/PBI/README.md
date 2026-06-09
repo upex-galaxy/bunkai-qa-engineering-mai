@@ -62,3 +62,53 @@ Custom-field content (ACs, ATP/ATR, scope, business rules, comments) is **only**
 - **Prefix**: Jira project key — `{{PROJECT_KEY}}-` (declared in `.agents/project.yaml`).
 - **Names**: kebab-case for file names; `EPIC-` / `STORY-` / `DEFECT-` prefixes on folders per the canonical tree.
 - **Evidence**: `evidence/` holds ephemeral screenshots/logs (gitignored).
+
+---
+
+## Project BK — Bunkai TMS (configured 2026-06-08)
+
+| Field | Value |
+|-------|-------|
+| Project key | BK |
+| Site | https://upexgalaxy69.atlassian.net/ |
+| CLI | `acli jira` + `NODE_TLS_REJECT_UNAUTHORIZED=0` prefix |
+| Issue type (Story) | `Historia` (Spanish — mapped in `jira-required.yaml`) |
+| Issue type (Bug) | `Error` |
+| Issue type (Improvement) | `Mejora` |
+| Total issues | 84 (as of 2026-06-08) |
+
+### Epic Tree
+
+| Epic | Title | Domain |
+|------|-------|--------|
+| BK-1 | Tenancy & Identity | Auth, workspaces, RBAC |
+| BK-7 | Project & Module Hierarchy | Project/Module CRUD |
+| BK-12 | User Stories & Acceptance Criteria | US + AC management ← BK-15 |
+| BK-13 | ATC Library | ATC authoring |
+| BK-24 | Tests | Test assembly |
+| BK-29 | Credenciales de Acceso para Testing | QA credentials |
+| BK-30 | Manual Execution & Runs | Test execution |
+| BK-31 | Bugs & Defect Heatmap | Defect management |
+| BK-44 | Coverage & Traceability | Coverage |
+| BK-70 | BK Test Repository | Test repository |
+| BK-85 | Account & Settings | User settings |
+
+### Common Queries
+
+```bash
+# Always prefix with: NODE_TLS_REJECT_UNAUTHORIZED=0 (self-signed cert on upexgalaxy69)
+
+# Sync single story (full custom fields + comments)
+NODE_TLS_REJECT_UNAUTHORIZED=0 bun run jira:sync-issues get BK-15 --include-comments
+
+# Sync epic + all its stories
+NODE_TLS_REJECT_UNAUTHORIZED=0 bun run jira:sync-issues pull --epic BK-12
+
+# Sync by JQL
+NODE_TLS_REJECT_UNAUTHORIZED=0 bun run jira:sync-issues jql "project = BK AND status = 'Ready For QA'"
+
+# Search (key + summary + status — NOT custom fields)
+NODE_TLS_REJECT_UNAUTHORIZED=0 acli jira workitem search \
+  --jql "project = BK AND assignee = currentUser()" \
+  --paginate --csv
+```
