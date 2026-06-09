@@ -255,7 +255,7 @@ unmapped:
 # discovered by the sync.
 work_types:
   story:
-    jira_issue_type: Story
+    jira_issue_type: Historia
     description: User story / feature work item
     required_statuses:
       backlog: { description: Initial state for a freshly created story }
