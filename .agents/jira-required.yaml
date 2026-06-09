@@ -485,3 +485,21 @@ work_types:
       deprecated: { from: any, to: deprecated, description: Retire the TC (global transition) }
       recover: { from: deprecated, to: draft, description: Restore a deprecated TC back to draft }
     used_by: [test-documentation, test-automation]
+
+# Issue link types the methodology uses for traceability.
+# Validated by `bun run jira:check` against the instance.
+# Slugs must match the names resolved by `bun run jira:sync-workflows`.
+link_types:
+  required:
+    test:
+      name: Tests
+      description: Links a Test Case to the Story/Bug it covers (e.g. TC "Tests" Story).
+      used_by: [sprint-testing, test-documentation, shift-left-testing]
+    blocks:
+      name: Blocks
+      description: Marks that one issue blocks another (e.g. a bug Blocks a story).
+      used_by: [sprint-testing]
+    problem_incident:
+      name: Problem/Incident
+      description: Links a defect to the story or problem it is associated with.
+      used_by: [sprint-testing]
