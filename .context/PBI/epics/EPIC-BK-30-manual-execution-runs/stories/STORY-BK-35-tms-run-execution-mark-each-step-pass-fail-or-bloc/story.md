@@ -1,0 +1,67 @@
+# TMS-Run Execution | Mark each step pass, fail, or block
+
+**Jira Key:** [BK-35](https://jira.upexgalaxy.com/browse/BK-35)
+**Epic:** [BK-30](https://jira.upexgalaxy.com/browse/BK-30) (Manual Execution & Runs)
+**Type:** Historia
+**Status:** Estimation
+**Priority:** Medium
+**Story Points:** 1
+**Web Link:** https://staging-upexbunkai.vercel.app/
+
+---
+
+## Overview
+
+***Source spec:*** BK-020
+
+## User story
+
+***As a*** QA Engineer
+***I want to*** mark each step passed, failed, or blocked while executing, with an optional note and evidence link
+***So that*** the parent ATC verdict and overall run progress update as I go, and teammates watching see it live
+
+## Definition of done
+
+- [ ] The engineer can mark any pending step passed, failed, or blocked
+- [ ] A note and an evidence link can be attached to a step result, both optional
+- [ ] The parent ATC verdict updates from the step results (passed when all pass, failed when any fails, blocked when any is blocked and none failed)
+- [ ] The overall run progress percentage advances as steps are resolved
+- [ ] A teammate watching the same Run sees the verdict and progress update live without refreshing
+- [ ] Reporting a result on a Run that has already finished or been aborted is blocked with a clear message
+- [ ] The latest reported result for a step is the one shown
+
+---
+
+## Fields
+
+> Each rich-text field is a separate file in this folder.
+
+- [Acceptance Criteria](./acceptance-criteria.md)
+- [Business Rules](./business-rules.md)
+- [Scope](./scope.md)
+- [Out Of Scope](./out-of-scope.md)
+- [Workflow](./workflow.md)
+- [Acceptance Test Plan (QA)](./acceptance-test-plan.md)
+
+---
+
+## Traceability
+
+### Historias (2)
+
+- [BK-34](https://jira.upexgalaxy.com/browse/BK-34): TMS-Run Execution | Start a manual run in a chosen environment _(Ready For Dev)_
+- [BK-40](https://jira.upexgalaxy.com/browse/BK-40): TMS-Defect Filing | File a defect from a failing run step _(Ready For Dev)_
+
+---
+
+## Metadata
+
+- **Created:** 5/28/2026
+- **Updated:** 6/11/2026
+- **Reporter:** Ely
+- **Assignee:** Benjamin Segovia
+- **Labels:** shift-left-reviewed
+
+---
+
+_Synced from Jira by sync-jira-issues_

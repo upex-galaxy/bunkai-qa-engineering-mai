@@ -353,6 +353,34 @@ work_types:
 
     used_by: [acli, sprint-testing, test-documentation, project-discovery]
 
+  defect:
+    jira_issue_type: Defect
+    description: Defect work item (alternate issue type — same field set as Bug)
+    required_statuses:
+      open: { description: Newly reported defect awaiting triage }
+      in_progress: { description: Developer actively fixing }
+      in_review: { description: Pull request open }
+      ready_for_qa: { description: Fix deployed; defect ready to retest }
+      closed: { description: 'Defect verified fixed (terminal)' }
+      deferred: { description: Defect accepted but postponed }
+      cannot_reproduce: { description: Defect closed because the team cannot reproduce (terminal) }
+      duplicated: { description: Defect closed as duplicate (terminal) }
+      rejected: { description: Defect rejected as Working As Designed (terminal) }
+      aborted: { description: Defect abandoned without fix (terminal) }
+    required_transitions:
+      start_fixing: { from: open, to: in_progress, description: Developer starts fixing }
+      pull_request: { from: in_progress, to: in_review, description: PR opened }
+      fixed_and_deployed:
+        { from: in_review, to: ready_for_qa, description: Fix deployed; ready to retest }
+      retest_passed: { from: ready_for_qa, to: closed, description: QA verifies the fix }
+      re_open: { from: any, to: open, description: Re-open a closed defect }
+      defer: { from: open, to: deferred, description: Postpone the fix }
+      is_cnr: { from: open, to: cannot_reproduce, description: Cannot reproduce — close }
+      is_duplicated: { from: open, to: duplicated, description: Defect is a duplicate }
+      is_wad: { from: open, to: rejected, description: Working as designed — reject }
+      aborted: { from: any, to: aborted, description: Abandon the defect }
+    used_by: [acli, sprint-testing]
+
   bug:
     jira_issue_type: Bug
     description: Defect / bug work item

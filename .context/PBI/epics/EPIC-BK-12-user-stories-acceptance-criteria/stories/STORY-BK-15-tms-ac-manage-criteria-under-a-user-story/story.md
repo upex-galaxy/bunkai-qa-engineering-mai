@@ -46,6 +46,10 @@
 
 ## Traceability
 
+### Defect (1)
+
+- [BK-143](https://jira.upexgalaxy.com/browse/BK-143): AC Management: Description Validation: Byte cap enforces 50,000 bytes (decimal) instead of 51,200 bytes (binary KiB) _(Abierta)_
+
 ### Historias (3)
 
 - [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(In Test)_
