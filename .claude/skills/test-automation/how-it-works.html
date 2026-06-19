@@ -523,6 +523,7 @@ h4,.h4{font-size:22px;line-height:1.3;font-weight:600;margin:0 0 8px}
     </tbody>
   </table>
   <p class="dim mt-s">When in doubt, ASK. Never assume "module" just because several TC IDs appear.</p>
+  <p class="dim mt-s">These scopes consume the <b>Candidate</b> verdicts from /test-documentation — mapping: Module ← module-driven · Ticket ← ticket-driven · Regression ← bug-driven · ad-hoc → wherever it fits. Manual and Deferred are terminal.</p>
   <div class="notes">Scope dictates how much planning ceremony you produce. Only Candidate verdicts from test-documentation reach automation — Manual and Deferred are terminal.</div>
 </section>
 
@@ -589,6 +590,36 @@ h4,.h4{font-size:22px;line-height:1.3;font-weight:600;margin:0 0 8px}
   </div>
   <p class="dim mt-s">Actions inside change → different ATC. Only DATA changes but behavior is identical → same ATC, parameterized.</p>
   <div class="notes">Different status codes, UI states, or business outcomes are separate ATCs. Same outcome, different data, is one. This keeps the ATC count honest.</div>
+</section>
+
+<section class="slide" data-title="AC is the floor">
+  <p class="kicker">test-design doctrine — the core principle</p>
+  <h2 class="h2" data-anim="fade-up">"All ACs covered" is the <span class="grad">floor</span>, not the success bar</h2>
+  <div class="grid g3 mt-l anim-stagger-list">
+    <div class="card card-accent"><h4>1 · Passing ≠ probing</h4><p class="dim">Green ACs confirm the contract. They don't prove the system is robust, safe, or error-resistant.</p></div>
+    <div class="card card-accent"><h4>2 · Floor, not ceiling</h4><p class="dim">"All ACs covered" is the entry bar. The ATC set must also cover risk-beyond-AC.</p></div>
+    <div class="card card-accent"><h4>3 · Criterion vs case</h4><p class="dim">A criterion is a business assertion. An ATC is its concrete exploration: precondition + action + assertions.</p></div>
+    <div class="card card-accent"><h4>4 · 1 : N by default</h4><p class="dim">One AC → many ATCs. EP-merge collapses WITHIN a partition only — never across partitions, boundaries, or states.</p></div>
+    <div class="card card-accent"><h4>5 · Risk lives outside</h4><p class="dim">Automate the invalid/boundary inputs, auth/error paths, state transitions, and anomalies the AC is silent on.</p></div>
+    <div class="card"><h4>EP ≠ BVA</h4><p class="dim"><b>Same-behavior merge hides off-by-one.</b> Wherever a range/limit/length/date-window exists, add explicit boundary ATCs.</p></div>
+  </div>
+  <div class="notes">Canon: agentic-qa-core/references/test-design-doctrine.md. The review gate (§3.4.1 input-domain, §3.4.2 state/temporal) enforces this in code.</div>
+</section>
+
+<section class="slide" data-title="Techniques by trigger">
+  <p class="kicker">test-design doctrine — derive by technique</p>
+  <h2 class="h2" data-anim="fade-up">One criterion → N ATCs, chosen by the AC's <span class="grad">shape</span></h2>
+  <table class="dtable mt-l">
+    <thead><tr><th>Trigger in the AC</th><th>Technique (binding)</th><th>ATCs it produces</th></tr></thead>
+    <tbody>
+      <tr><td>Any input (always)</td><td><b>Equivalence Partitioning</b></td><td>same-behavior inputs → one parameterized ATC; distinct partitions → separate ATCs</td></tr>
+      <tr><td>A range / limit / length / date-window</td><td><b>Boundary Value Analysis</b></td><td>min-1·min·min+1 … max-1·max·max+1, zero / empty / null</td></tr>
+      <tr><td>A status / lifecycle field</td><td><b>State-Transition</b></td><td>every valid transition + every invalid transition</td></tr>
+      <tr><td>2+ interacting conditions</td><td><b>Decision Table</b></td><td>one ATC per surviving rule of the combo matrix</td></tr>
+      <tr><td>3+ combinable factors</td><td><b>Pairwise</b></td><td>all-pairs ATC set (log the reduction)</td></tr>
+    </tbody>
+  </table>
+  <div class="notes">EP without BVA misses off-by-one. A status field with no invalid-transition ATC is an incomplete plan. The triggers are binding.</div>
 </section>
 
 <section class="slide" data-title="ATC craft rules">
@@ -719,6 +750,7 @@ h4,.h4{font-size:22px;line-height:1.3;font-weight:600;margin:0 0 8px}
 <span class="cmt">// Locator ladder:  1 getByTestId  2 getByRole  3 getByLabel  4 getByText  5 CSS/XPath</span>
 <span class="cmt">// BANNED: .btn-primary · div &gt; form &gt; button:nth-child(3) · page.waitForTimeout(3000)</span></pre>
   </div>
+  <p class="dim mt-s">Coming from the getByRole-first standard? Here data-testid is rung 1 because the dev team provides them as a stable testing contract — getByRole remains the immediate fallback.</p>
   <div class="notes">Prefer data-testid every time it exists. CSS-class and structural selectors decay on every refactor. UI ATCs return void; assertions live inside.</div>
 </section>
 
@@ -764,6 +796,7 @@ test.<span class="fn">describe</span>(<span class="str">'UPEX-411: Apply Discoun
   <ul class="blist anim-stagger-list">
     <li><b>Three shared checklists first.</b> Component / ATC / Test-file review — naming, layer extension, decorators, tuple returns, inline locators, ticket-ID prefix.</li>
     <li><b>Then the delta.</b> E2E delta (locator quality, condition-based waits, session reuse) OR API delta (facade compliance, tuple discipline, status coverage, auth).</li>
+    <li><b>Coverage gates the handoff.</b> Beyond HTTP status: §3.4.1 input-domain (EP + BVA boundaries) and §3.4.2 state-transition / idempotency / concurrency / timeout must be covered or marked explicitly N/A.</li>
     <li><b>Severity model.</b> CRITICAL &amp; HIGH block merge; MEDIUM recommended; LOW nice-to-have. A hardcoded waitForTimeout or missing @atc is CRITICAL.</li>
     <li><b>Revision ceiling.</b> Max 2 revision loops. Still not APPROVED after 2 rounds? Escalate to the user; never loop forever.</li>
     <li><b>Optional adversarial gate.</b> For high-risk changes (new fixtures, shared base edits) run a dual-judge review before commit.</li>
@@ -807,6 +840,20 @@ test.<span class="fn">describe</span>(<span class="str">'UPEX-411: Apply Discoun
 <span class="o">    differ from standard Playwright conventions.</span></pre>
   </div>
   <div class="notes">The skill auto-loads on these phrases. It explicitly will NOT trigger for running suites (regression-testing), documenting TCs (test-documentation), or onboarding a repo (project-discovery).</div>
+</section>
+
+<section class="slide" data-title="Preflight gate">
+  <p class="kicker">before everything — readiness preflight gate (MANDATORY)</p>
+  <h2 class="h2" data-anim="fade-up">The Readiness Gate Runs BEFORE Any Planning</h2>
+  <ul class="blist anim-stagger-list">
+    <li><b>Framework adapted.</b> No ATCs are written against the boilerplate's Example* scaffolds. Still generic? STOP — run /project-discovery → /adapt-framework first (the gate never auto-runs them).</li>
+    <li><b>Toolchain + manifest clean.</b> bun run test / types:check / lint:check resolve at t=0, not at Phase 3; kata:manifest:check clean before proposing components or ATCs.</li>
+    <li><b>Live environment + credentials.</b> Authored tests run against the active env: URL reachable, test users in .env (per role if applicable), Playwright browsers installed.</li>
+    <li><b>MCPs at PLAN-time.</b> The OpenAPI MCP (explore endpoints) and DBHub MCP (explore schema) are needed while DESIGNING ATCs and classifying data in Phase 1 — not just at run-time.</li>
+    <li><b>Two laws.</b> args-as-answers (what's already provided is never re-asked) and probe-don't-assume; gaps and REDs surface as ONE checklist, STOP on any blocking RED.</li>
+  </ul>
+  <p class="dim mt-s">After the gate comes Phase 0: if a prior session exists for the scope, it offers resume / restart / abort — you pick up exactly where you left off.</p>
+  <div class="notes">A recent, MANDATORY addition to the skill: it runs before the Phase 0 resume check and the scope picker. It prevents discovering mid-Code that a credential, an MCP, or the framework adaptation was missing. Distinct from Phase 1's anti-duplication pre-flight (which cross-checks the manifest for reuse); this gate is about tools and environment being ready to write and run code.</div>
 </section>
 
 <section class="slide" data-title="Auto-loaded context">
@@ -868,6 +915,7 @@ test.<span class="fn">describe</span>(<span class="str">'UPEX-411: Apply Discoun
 <pre><span class="p">▸ </span><span class="c">/test-automation</span>
 <span class="o">  Scope? (module / ticket / regression) — ticket UPEX-411</span>
 
+<span class="o">[Preflight] framework adapted ✓ toolchain ✓ env+creds ✓ manifest ✓ browsers ✓ — GREEN.</span>
 <span class="o">[Phase 0] No prior session for UPEX-411 → fresh start.</span>
 <span class="o">[Plan]   Syncing Story… jira:sync-issues get UPEX-411 --include-comments</span>
 <span class="o">         kata-manifest.json: CheckoutPage exists; reuse. New ATC: completeCheckoutSuccessfully.</span>

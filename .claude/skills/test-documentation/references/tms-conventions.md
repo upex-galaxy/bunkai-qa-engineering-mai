@@ -340,6 +340,15 @@ And the average rating {average} = sum of ratings / {N}
 
 ### Variables table (mandatory in TC Description)
 
+> **`Examples:` vs `Variables` — two different tables, do not conflate.** The
+> `Examples:` table (in the Gherkin §"Gherkin") supplies the **varying data values
+> per equivalence partition** — *what* changes each parameterized run (the
+> artifact-economy lever, doctrine §"Part 2.5"). The `Variables` table (here, in
+> the Description) explains **how to OBTAIN each variable at runtime** (the SQL /
+> source query) — it does not vary per run. Rule of thumb: a value that *changes
+> the case* → an `Examples` column; a value you must *look up to run the case* → a
+> `Variables` row. A parameterized TC typically has BOTH.
+
 Every TC with variables must include a table explaining how to obtain each one:
 
 ```
@@ -512,9 +521,23 @@ Inputs producing **different outputs** -> separate TCs.
 
 Example: all invalid credentials (wrong email, wrong password, empty fields) producing 401 -> one parameterized TC `loginWithInvalidCredentials`. Locked account producing 423 -> separate TC.
 
-### Boundary Value Analysis
+### Boundary Value Analysis (REQUIRED wherever a range/limit exists)
 
-Test at the edges of equivalence classes. 7 chars (just below min) and 65 chars (just above max) are interesting; 30 chars in the middle of the valid range is not.
+Test at the edges of equivalence classes: `min-1 · min · min+1` and `max-1 · max · max+1`, plus zero / empty / null / overflow. 7 chars (just below an 8-min) and 65 chars (just above a 64-max) are interesting; 30 chars in the middle of the valid range is not. EP without BVA misses off-by-one defects — when an AC names any numeric range, string length, collection size, date window, quota, or pagination limit, boundary TCs are mandatory, not optional.
+
+### State-Transition (REQUIRED for stateful entities)
+
+When an entity has a status / lifecycle (draft → submitted → approved; cart → paid → shipped; active → locked → closed), derive one TC per **valid transition** AND one per **invalid transition** (a trigger fired in a state that should reject it — e.g. "approve an already-closed item → rejected"). The invalid transitions are where defects concentrate; testing only the target state is insufficient.
+
+### Decision Tables (REQUIRED when 2+ conditions interact)
+
+When the outcome depends on a combination of conditions (role × feature-flag × account-status), build a decision table: enumerate the condition combinations, collapse impossible/equivalent columns, and derive one TC per surviving rule. Do not test only the combinations the AC happens to mention.
+
+### Pairwise / combinatorial (REQUIRED when 3+ combinable factors)
+
+When 3+ independent factors each have multiple values (browser × locale × plan × payment-method), the full grid explodes. Use all-pairs selection — cover every pair of factor-values at least once — and **log that pairwise was applied** so the reduction is visible, not a silent cap.
+
+> Full canon + worked example: `agentic-qa-core/references/test-design-doctrine.md`. The techniques decide the TC set; ROI (SKILL.md Phase 2) then decides which TCs are Candidate / Manual / Deferred.
 
 ---
 
