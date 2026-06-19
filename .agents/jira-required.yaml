@@ -351,11 +351,13 @@ work_types:
         to: ready_for_dev
         description: Restore an aborted story back to ready_for_dev
 
+    coverable: true
     used_by: [acli, sprint-testing, test-documentation, project-discovery]
 
   defect:
     jira_issue_type: Defect
     description: Defect work item (alternate issue type — same field set as Bug)
+    defect_link_types: [defect, xray_defect]
     required_statuses:
       open: { description: Newly reported defect awaiting triage }
       in_progress: { description: Developer actively fixing }
