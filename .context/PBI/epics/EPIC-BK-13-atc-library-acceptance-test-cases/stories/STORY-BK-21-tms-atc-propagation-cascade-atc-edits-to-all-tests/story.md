@@ -55,7 +55,7 @@
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/15/2026
+- **Updated:** 6/18/2026
 - **Reporter:** Ely
 - **Assignee:** Ramiro Majdalani
 - **Labels:** atc, mvp, propagation, wave-2

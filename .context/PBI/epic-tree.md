@@ -16,13 +16,14 @@ _Project: BK_
 
 ## [BK-7](https://jira.upexgalaxy.com/browse/BK-7) - Project & Module Hierarchy
 
-**Status:** Planificación | **Stories:** 5 | **Points:** 27
+**Status:** Planificación | **Stories:** 6 | **Points:** 28
 
 - [BK-8](https://jira.upexgalaxy.com/browse/BK-8) TMS-Project | Create a project inside a workspace _(8 pts, QA Approved)_
 - [BK-9](https://jira.upexgalaxy.com/browse/BK-9) TMS-Module | Create modules with nested sub-modules _(13 pts, QA Approved)_
 - [BK-10](https://jira.upexgalaxy.com/browse/BK-10) TMS-Module | Rename and soft-delete a module _(2 pts, QA Approved)_
 - [BK-11](https://jira.upexgalaxy.com/browse/BK-11) TMS-Module | Move a module to a different parent _(3 pts, QA Approved)_
 - [BK-98](https://jira.upexgalaxy.com/browse/BK-98) TMS-Projects | Switch between Tree, Table & Mind map views in a hardened explorer _(1 pts, QA Approved)_
+- [BK-147](https://jira.upexgalaxy.com/browse/BK-147) App Shell | Open ATCs and Tests as tabs with a persistent explorer _(1 pts, Shift-Left QA)_
 
 ## [BK-12](https://jira.upexgalaxy.com/browse/BK-12) - User Stories & Acceptance Criteria
 
@@ -38,7 +39,7 @@ _Project: BK_
 **Status:** Planificación | **Stories:** 6 | **Points:** 28
 
 - [BK-18](https://jira.upexgalaxy.com/browse/BK-18) TMS-ATC API | Create and edit ATCs with steps and assertions _(5 pts, In Test)_
-- [BK-19](https://jira.upexgalaxy.com/browse/BK-19) TMS-ATC Builder | Build an ATC with ordered steps and assertions _(5 pts, Ready For QA)_
+- [BK-19](https://jira.upexgalaxy.com/browse/BK-19) TMS-ATC Builder | Build an ATC with ordered steps and assertions _(5 pts, QA Approved)_
 - [BK-20](https://jira.upexgalaxy.com/browse/BK-20) TMS-ATC Search | Search and autocomplete ATCs _(5 pts, Ready For Dev)_
 - [BK-21](https://jira.upexgalaxy.com/browse/BK-21) TMS-ATC Propagation | Cascade ATC edits to all tests _(5 pts, Ready For Dev)_
 - [BK-22](https://jira.upexgalaxy.com/browse/BK-22) TMS-ATC Usage | See a "Used in N tests" report _(3 pts, Ready For Dev)_
@@ -49,8 +50,8 @@ _Project: BK_
 **Status:** Planificación | **Stories:** 4 | **Points:** 24
 
 - [BK-27](https://jira.upexgalaxy.com/browse/BK-27) TMS-Test Builder | Assemble a test by chaining ATCs _(8 pts, QA Approved)_
-- [BK-28](https://jira.upexgalaxy.com/browse/BK-28) TMS-Test Builder | Reorder ATCs inside a test _(5 pts, Ready For Dev)_
-- [BK-32](https://jira.upexgalaxy.com/browse/BK-32) TMS-Test View | View a test with all chained ATCs expanded _(3 pts, Ready For Dev)_
+- [BK-28](https://jira.upexgalaxy.com/browse/BK-28) TMS-Test Builder | Reorder ATCs inside a test _(5 pts, Ready For QA)_
+- [BK-32](https://jira.upexgalaxy.com/browse/BK-32) TMS-Test View | View a test with all chained ATCs expanded _(3 pts, Ready For QA)_
 - [BK-33](https://jira.upexgalaxy.com/browse/BK-33) TMS-Test Tags | Assign reserved and custom tags to a test _(8 pts, Ready For Dev)_
 
 ## [BK-29](https://jira.upexgalaxy.com/browse/BK-29) - Bunkai TMS — Credenciales de Acceso para Testing (DB / API / UI)

@@ -1,7 +1,7 @@
 # Master Test Plan — upex-bunkai-tms
 
-> Generated: 2026-06-08 | Mode: CREATE
-> Sources: business-data-map.md, business-feature-map.md, SRS/functional-specs.md
+> Generated: 2026-06-19 | Mode: UPDATE (from 2026-06-08 original)
+> Sources: business-data-map.md, business-feature-map.md, sprint-testing sessions BK-5/BK-7/BK-8/BK-9/BK-15/BK-18/BK-19
 > Audience: QA engineer onboarding to Bunkai TMS
 
 ```
@@ -9,6 +9,7 @@
 |                        BUNKAI TMS (分解)                                |
 |   What to test in this system, and why it matters                       |
 |   Multi-tenant Test Management System — Risk-Ranked Testing Strategy    |
+|   Updated with empirical sprint-testing evidence (June 2026)            |
 +-------------------------------------------------------------------------+
 ```
 
@@ -16,22 +17,24 @@
 
 ## 1. Executive Risk Map
 
-Bunkai's most fragile areas are not the features you can see — they're the structural guarantees that are only partially enforced. The anchoring moat (the core product promise that every ATC must link to a real business requirement) is enforced by application code only; the database accepts empty AC arrays from any caller that bypasses the Server Action. Multi-tenant isolation is RLS-only for roughly 60% of entities, which means a single flawed policy is a data-leakage incident across every workspace on the instance. The PAT authentication system recently had a critical bug (only the secret remainder was hashed, not `prefix+remainder`), was fixed, and has not yet been regression-tested. And `magic_link_tokens.consumed_at` is never stamped, which means OTP replay is theoretically open in the current schema.
+Bunkai's most fragile areas are not the features you can see — they're the structural guarantees that are only partially enforced. The anchoring moat (the core product promise that every ATC must link to a real business requirement) is enforced by application code only; the database accepts empty AC arrays from any caller that bypasses the Server Action. Multi-tenant isolation is RLS-only for roughly 60% of entities, which means a single flawed policy is a data-leakage incident across every workspace on the instance. Sprint testing sessions (BK-5 through BK-19) have now confirmed several predicted risks and uncovered two new CRITICAL failure modes: `workspace:admin` scope self-issuable by any authenticated user regardless of role (BK-117/134/135 — 136 active privilege-escalated tokens in staging), and the ATC PATCH endpoint returning 412 PRECONDITION_FAILED while the mutation silently commits (BK-96 — split-brain state that makes `PATCH /atcs/{id}` untrusted by any well-behaved consumer).
 
-Beyond those structural risks, the system has two additional failure patterns worth naming up front: there is no CI pipeline (no automated safety net against regression), and test execution history — arguably the most important future feature — has zero schema support yet, meaning Sprint 2 will land on a foundation that has never been stress-tested in the current data model.
+Beyond structural risks, bugs confirmed in sprint testing reveal a recurring pattern: server-side validation is frequently missing or mismatched relative to documented specs. The description byte-cap defect (BK-143: 50,000 bytes decimal enforced instead of 51,200 binary KiB) and the missing submit guard (BK-99) are examples of spec drift that accumulates silently.
 
-| Priority | Flow / Area                          | Why it matters                                   | Depends on / Affects                        |
-|----------|--------------------------------------|--------------------------------------------------|---------------------------------------------|
-| CRITICAL | ATC Anchoring Moat (RPC bypass)      | Core product promise: every test proves a requirement — bypass destroys that guarantee | bunkai_save_atc RPC, atc_acceptance_criteria, SDET/agent headless callers |
-| CRITICAL | Multi-tenant RLS isolation           | Cross-workspace data leakage — all 60% of PostgREST-only entities rely solely on RLS | projects, modules, user_stories, acceptance_criteria, atcs, all workspace data |
-| CRITICAL | PAT Bearer authentication            | Security regression (fixed bug: hash of remainder only); every headless integration depends on it | All API flows behind Bearer auth, SDET tooling, AI agents |
-| CRITICAL | Magic Link OTP — reuse window        | consumed_at never stamped → used link remains technically replayable | Supabase Auth session issuance, all browser authentication |
-| HIGH     | Workspace Creation + Slug isolation  | Tenant root bootstrap; slug collision or reserved-slug bypass = namespace pollution | All downstream data scoped to workspace |
-| HIGH     | Invite Acceptance + Email validation | Multi-tenant boundary at onboarding; wrong email match = unauthorized workspace access | workspace_members, RLS access for invited users |
-| HIGH     | Headless Signup / Sign-In + PAT mint | Primary path for CI bots and AI agents; PAT shown once — lose it, lose the integration | access_tokens, SDET pipelines, agent onboarding |
-| HIGH     | Workspace Endpoint Bearer gap        | GET /workspaces/{id} and POST /workspaces are cookie-only; headless agents cannot access workspace info via PAT | Any agent that calls /me then tries to fetch workspace details |
+| Priority | Flow / Area                            | Why it matters                                                     | Depends on / Affects                                       |
+|----------|----------------------------------------|--------------------------------------------------------------------|------------------------------------------------------------|
+| CRITICAL | ATC Anchoring Moat (RPC bypass)        | Core product promise: every test proves a requirement — bypass destroys that guarantee | bunkai_save_atc RPC, atc_acceptance_criteria, SDET/agent headless callers |
+| CRITICAL | Multi-tenant RLS isolation             | Cross-workspace data leakage — all 60% PostgREST-only entities rely solely on RLS | projects, modules, user_stories, acceptance_criteria, atcs |
+| CRITICAL | PAT Bearer authentication              | Security regression (BK-84 confirmed only /me + /workspaces accepted Bearer; fixed but regression target) | All API flows behind Bearer auth, SDET tooling, AI agents |
+| CRITICAL | workspace:admin scope privilege escalation | Member-role users can self-issue admin-scoped PATs (BK-117/134) — 136 active escalated tokens in staging | PAT issuance endpoint, workspace admin operations, multi-tenant security |
+| CRITICAL | ATC PATCH If-Match split-brain         | PATCH /atcs/{id} returns 412 while mutation commits fully (BK-96) — API contract broken, retries corrupt data | ATC edit flow, SDET pipelines, optimistic locking |
+| CRITICAL | Magic Link OTP — reuse window          | consumed_at never stamped → used link technically replayable      | Supabase Auth session issuance, all browser authentication |
+| HIGH     | Workspace Creation + Slug isolation    | Tenant root bootstrap; slug collision or reserved-slug bypass = namespace pollution | All downstream data scoped to workspace |
+| HIGH     | Invite Acceptance + Email validation   | BK-62 confirmed unconditional upsert demoted workspace owner to member; fixed but regression needed | workspace_members, RLS access for all invited users |
+| HIGH     | Invite Issuance — member deduplication | BK-60 confirmed no email uniqueness check; fixed but regression needed; original design allows privilege escalation via duplicate invite | workspace_invites, role grants |
+| HIGH     | Headless Signup / Sign-In + PAT mint   | Primary path for CI bots and AI agents; PAT shown once — lose it, lose the integration | access_tokens, SDET pipelines, agent onboarding |
 | HIGH     | ATC Save — concurrent saves / version race | Full-replace RPC + optimistic version counter; two concurrent saves silently overwrite each other | bunkai_save_atc, atc_steps, atc_assertions, atc_acceptance_criteria |
-| HIGH     | Idempotency infrastructure — dormant | ATC saves are not idempotent; network retries from CI/agents can create duplicate content or corrupt step order | bunkai_save_atc, all POST endpoints |
+| HIGH     | Idempotency infrastructure — dormant   | ATC saves are not idempotent; network retries from CI/agents can create duplicate content or corrupt step order | bunkai_save_atc, all POST endpoints |
 
 ---
 
@@ -82,20 +85,21 @@ Two test users across two isolated workspaces, both active members. Direct Postg
 ### 2.3 PAT Bearer Authentication — Regression
 
 **Why it matters**
-Every headless integration — CI pipelines, SDET scripts, AI agent bootstraps — authenticates via PAT Bearer tokens. The previous implementation hashed only the `remainder` portion of the token instead of `prefix+remainder`. That means every PAT issued before the fix was silently invalid — callers got 401s with no indication of why. The fix is in place, but the regression suite does not yet cover this path explicitly. If the fix is ever reverted or a similar truncation bug appears in a refactor, every headless integration goes silent.
+Every headless integration — CI pipelines, SDET scripts, AI agent bootstraps — authenticates via PAT Bearer tokens. Sprint testing session BK-7 (BK-84/92/93) confirmed a staging-wide `requireAuth` middleware regression: valid PATs authenticated successfully on `GET /api/v1/me` and `GET /api/v1/workspaces` but were rejected with 401 on every member-only route — imports, projects, modules, tokens. The bug was closed but represents a fragile path that breaks silently and wastes hours of SDET debugging.
 
 **What commonly breaks**
-The token parsing logic in `lib/api/middleware/bearer.ts` strips the `bk_pat_` prefix, splits on the first `.`, and uses `prefix + remainder` as the full secret for SHA-256 comparison. Any off-by-one in the string manipulation (wrong split index, wrong slice length) produces a hash that never matches, resulting in uniform 401s with no diagnostic output. The fire-and-forget `last_used_at` update also runs after auth — if that update crashes, you need to confirm auth still returns the correct user object.
+The token parsing logic in `lib/api/middleware/bearer.ts` strips the `bk_pat_` prefix, splits on the first `.`, and uses `prefix + remainder` as the full secret for SHA-256 comparison. Any off-by-one in the string manipulation (wrong split index, wrong slice length) produces a hash that never matches, resulting in uniform 401s with no diagnostic output. Scope enforcement also has a gap: `workspace:admin` scope is self-issuable by any role (BK-117) — see §2.8 for the dedicated section on that defect.
 
 **Dependencies**
 A freshly minted PAT (post-fix), a scope-restricted PAT (e.g., `atc:read` only), and a revoked PAT for negative tests.
 
 **What an experienced QA would check**
-- Mint a new PAT via `POST /api/v1/tokens`, then immediately call `GET /api/v1/me` with the token in an `Authorization: Bearer` header — confirm the response includes the correct user identity and workspace list.
+- Mint a new PAT via `POST /api/v1/tokens`, then immediately call `GET /api/v1/me` with the token in an `Authorization: Bearer` header — confirm correct user identity and workspace list.
+- Use the same PAT on `POST /api/v1/workspaces/{id}/projects`, `POST /api/v1/projects/{id}/modules`, and `GET /api/v1/tokens` — all must return responses matching auth expectations, not 401 (BK-84 regression check).
 - Call an endpoint that requires `atc:write` scope using a PAT that only has `atc:read` — verify the response is 403 `forbidden`, not 401 `unauthorized`.
 - Revoke a PAT via `DELETE /api/v1/tokens/{id}`, then attempt to use it — confirm 401, not a partial success.
-- Call an endpoint with an expired PAT (create one with `expires_in_days=0` or wait, or manipulate `expires_at` via DBHub) — confirm 401 with no data leak.
-- Confirm `GET /api/v1/workspaces/{id}` (single workspace) returns 401 or "method not supported" when called with a Bearer token — this endpoint is intentionally cookie-only, and a headless agent receiving a 4xx should get a clear signal rather than silent data absence.
+- Call an endpoint with an expired PAT — confirm 401 with no data leak.
+- Confirm `GET /api/v1/workspaces/{id}` (single workspace) returns 401 when called with a Bearer token — this endpoint is intentionally cookie-only per confirmed architecture gap (BK-84 root cause analysis).
 
 ---
 
@@ -125,7 +129,7 @@ A real or stubbed Supabase Auth environment. Magic-link flows are harder to auto
 The workspace is the tenant root. If slug uniqueness can be bypassed — via a race condition between two users creating the same slug, or via a reserved slug not being blocked — two tenants end up with colliding namespaces. Worse, a slug that matches a system path (`/api`, `/admin`, `/auth`) could shadow real routes in a Next.js App Router deployment.
 
 **What commonly breaks**
-Slug validation runs in application code (Zod) and again as a uniqueness check in the `bunkai_bootstrap_workspace` RPC. The reserved-slug list is hardcoded in the route — if someone adds a new page route without updating the reserved list, the namespace collision is undetected. Concurrent creation of the same slug can sometimes slip past the uniqueness check if the DB constraint isn't atomic enough (it is a unique constraint in Postgres, so this should be safe — but it's worth verifying the 409 response body is correct, not an uncaught DB exception).
+Slug validation runs in application code (Zod) and again as a uniqueness check in the `bunkai_bootstrap_workspace` RPC. The reserved-slug list is hardcoded in the route — if someone adds a new page route without updating the reserved list, the namespace collision is undetected. Concurrent creation of the same slug can sometimes slip past the uniqueness check if the DB constraint isn't atomic enough (it is a unique constraint in Postgres, so this should be safe — but it's worth verifying the 409 response body is correct, not an uncaught DB exception). BK-51/54 confirmed reserved project slug rejection had gaps in an earlier sprint.
 
 **Dependencies**
 Authenticated user with a valid cookie session.
@@ -142,10 +146,10 @@ Authenticated user with a valid cookie session.
 ### 2.6 Invite Acceptance + Email Boundary
 
 **Why it matters**
-The invite acceptance flow is the front door for every new team member. The email-match validation is the only thing preventing User A from accepting an invite intended for User B. If that check fails — due to case sensitivity issues, unicode normalization, or a timing gap — an unauthorized user joins the workspace with whatever role the invite granted. Since `owner` cannot be invited but `admin` can, a compromised invite acceptance gives admin rights to the wrong person.
+The invite acceptance flow is the front door for every new team member. The email-match validation is the only thing preventing User A from accepting an invite intended for User B. Sprint testing BK-5 confirmed two CRITICAL defects in this flow: (1) BK-62 — the `workspace_members.upsert` at `app/api/v1/invites/accept/route.ts:77-87` sets `role = invite.role` unconditionally, which caused the workspace owner who accidentally accepted a member-role invite to be demoted to `member` (confirmed on staging workspace aed86386); (2) BK-60 — no email uniqueness check against active members before invite INSERT, allowing re-invitation of existing members with a different (potentially higher) role. Both bugs were closed, but the patterns they represent — unconditional upsert, missing pre-insert checks — are regression targets.
 
 **What commonly breaks**
-Case-insensitive email comparison is documented (BR-007-6) but needs explicit testing — the implementation compares emails after lowercasing, but Postgres `ILIKE` behavior vs. application-layer `toLowerCase()` can diverge on Unicode inputs. Token expiry is derived at the application layer (`expires_at < now()`) rather than a DB column transition — which means if the server clock skews, invite behavior changes without any visible signal. The MVP also does not send email, so the invite token is only available in the 201 response — a lost token can only be recovered via rotation, which an admin must know to do.
+Case-insensitive email comparison is documented (BR-007-6) but needs explicit testing. Token expiry is derived at the application layer (`expires_at < now()`) rather than a DB column transition — which means if the server clock skews, invite behavior changes without any visible signal. The MVP also does not send email, so the invite token is only available in the 201 response.
 
 **Dependencies**
 Two different user accounts (inviter and invitee), both authenticated via cookie session.
@@ -156,6 +160,8 @@ Two different user accounts (inviter and invitee), both authenticated via cookie
 - Attempt acceptance with an expired token (manipulate `expires_at` via DBHub) — confirm 403, not 500.
 - Attempt acceptance after revocation — confirm the revoked status is checked before expiry.
 - Attempt to accept the same valid invite twice — the second acceptance should upsert idempotently (same user, same workspace), not create a duplicate or throw an error.
+- **Regression for BK-62**: As an owner, accept a member-role invite for your own email. Verify your role in `workspace_members` is NOT demoted — the upsert must check and preserve the higher role.
+- **Regression for BK-60**: Attempt to invite an email address that is already an active member. Verify the response is 409, not 201.
 
 ---
 
@@ -176,6 +182,46 @@ No auth required (public endpoint). A disposable email address or a random UUID-
 - Submit the same email a second time — confirm 409 `conflict` and verify the error message tells the caller to use `/auth/signin`.
 - Submit a signup without `pat_name` or `pat_scopes` — verify defaults (all scopes, no expiry) are applied correctly.
 - Submit with `pat_expires_in_days=366` — confirm 422 validation failure with a clear message about the 365-day limit.
+
+---
+
+### 2.8 PAT Scope Privilege Escalation — workspace:admin Self-Issuable
+
+**Why it matters**
+`POST /api/v1/tokens` does not enforce role-based scope restrictions. Sprint testing BK-109 (BK-117/134/135) confirmed that any authenticated user — regardless of their role — can self-issue a PAT with `workspace:admin` scope. DB inspection of staging showed 136 active workspace:admin PATs, including 19 belonging to a confirmed member-role user. Because `workspace_id = NULL` is accepted on token issuance, these tokens grant workspace-admin access across ALL workspaces, not just the user's own. This is an open defect with a known escalation path at scale.
+
+**What commonly breaks**
+The `POST /api/v1/tokens` handler creates tokens for any authenticated user without checking the user's role in `workspace_members` or validating that `workspace:admin` scope is only grantable by admin/owner-role users. The check is entirely absent from `app/api/v1/tokens/route.ts`.
+
+**Dependencies**
+A user with `member` role in at least one workspace. A cookie session for that user (PAT cannot create PAT, so cookie session required for issuance).
+
+**What an experienced QA would check**
+- As a `member`-role user, call `POST /api/v1/tokens` with `scopes: ["workspace:admin"]` — verify the response is 403 `forbidden`, not 201 (this is the regression test for the open defect BK-117).
+- As an `admin`-role user, call the same endpoint with `workspace:admin` scope — verify 201 is returned (positive path must still work after the fix).
+- As a `viewer`-role user, confirm `workspace:admin` scope is rejected.
+- Verify the error response conforms to the standard error envelope: `{ error: { code: "forbidden", message: "workspace:admin scope requires admin or owner role" } }`.
+- After the fix lands, query `access_tokens` via `qa_inspector_ro` to confirm no new `workspace:admin` tokens are being created by member-role users.
+
+---
+
+### 2.9 ATC PATCH If-Match Split-Brain
+
+**Why it matters**
+The ATC edit endpoint (`PATCH /api/v1/atcs/{id}`) uses an `If-Match` header for optimistic locking — the caller sends the current version number, and the server either applies the patch or returns 409 if the version is stale. Sprint testing BK-18 (BK-96) confirmed a critical split-brain defect: when `PATCH` is called with the CORRECT `If-Match` value, the server returns 412 PRECONDITION_FAILED with a non-JSON Vercel platform error page — but the mutation commits fully in the database. The ATC version increments, steps are replaced, assertions are cleared, and an `atc.updated` audit row is written. The client believes the edit failed; the database shows it succeeded.
+
+**Why this is CRITICAL for headless consumers**
+A well-behaved API client that receives 412 will retry the request. The retry now sends `If-Match: 1` (the original version), but the server has already incremented to version 2 — so the retry gets a genuine 409 conflict, and the client enters an error loop. The data is corrupted by step content duplication across retry attempts. This is not a theoretical risk — it blocks BK-19, BK-21, and BK-23, and any SDET automation that wraps the PATCH endpoint.
+
+**Dependencies**
+A PAT with `atc:write` scope. An existing ATC at a known version.
+
+**What an experienced QA would check**
+- Send `PATCH /api/v1/atcs/{id}` with a valid `If-Match` header matching the current version — verify the response is 200 with the updated ATC, NOT 412 (regression check for BK-96).
+- Send `PATCH` with a stale `If-Match` value (version - 1) — verify 409 conflict with `details.current_version` in the response body.
+- After a successful PATCH, query `atcs` directly via DBHub and verify `version` incremented, `title` updated, steps and assertions match the request body exactly.
+- Send two concurrent PATCH requests for the same ATC — one should succeed (200), one should get 409. Verify the winning write's content is fully persisted and the losing write's content did not partially overwrite.
+- Confirm the error response on 412 is a proper JSON error envelope, not a raw Vercel platform error page (this was the secondary defect in BK-96).
 
 ---
 
@@ -313,6 +359,8 @@ The token rotation feature (POST on an existing invite) resets `expires_at`, `ac
 
 **Environment variable risk**: Supabase keys (`NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_PUBLISHABLE_KEY`) are configured in Vercel project settings. The documented env-var name mismatch between `middleware.ts` and `.env.example` means a fresh Vercel deployment from `.env.example` alone will have a broken middleware that fails silently — the session cookie won't be read correctly. This must be verified during any new environment setup.
 
+**Vercel edge + If-Match header risk (BK-96)**: Sprint testing confirmed that Vercel's edge layer may intercept the `If-Match` request header and emit a 412 before or independently of the serverless function body, even when the function already committed the mutation. Any PATCH endpoint using `If-Match` must be verified for Vercel-layer interference specifically — this is not reproducible in local dev environments.
+
 ---
 
 ### DBHub (MCP — QA Tool)
@@ -336,35 +384,41 @@ Auth (cookie session)
   +---> Workspace Creation ---> workspace_members (active) ---> All RLS access
   |                              |                                |
   |                              +--> Invite Issuance --> Invite Accept
+  |                                   [BK-60: email uniqueness gap — FIXED]
   |                                                         |
   |                                                         +--> workspace_members (active)
+  |                                                              [BK-62: role overwrite — FIXED]
   |                                                              (same RLS access gate)
   |
   +---> Headless Signup/Signin ---> PAT Mint
                                       |
                                       +--> Bearer Auth ---> All PAT-gated endpoints
-                                      |                      (atc:read, atc:write, etc.)
+                                      |    [BK-84: bearer only /me+/workspaces — FIXED]
+                                      |    [BK-117: workspace:admin scope leak — OPEN]
                                       |
                                       +--> /api/v1/me (identity resolution)
 
 Project Tree (PostgREST via RSC)
   +---> Modules ---> User Stories ---> Acceptance Criteria
-                                           |
-                                           +--> ATC Editor (bunkai_save_atc)
-                                                    |
-                                                    +--> atc_steps
-                                                    +--> atc_assertions
-                                                    +--> atc_acceptance_criteria (anchoring moat)
-                                                              |
-                                                              +--> [FAILS HERE if RLS gap]
-                                                                   = silent cross-workspace data write
+        [BK-57: PATCH rename+move not atomic]    |
+                                                  +--> AC Description: 50,000 bytes max
+                                                       [BK-143: decimal not binary KiB — OPEN]
+                                                       |
+                                                  +--> ATC Editor (bunkai_save_atc)
+                                                            |
+                                                            +--> atc_steps
+                                                            +--> atc_assertions
+                                                            +--> atc_acceptance_criteria (anchoring moat)
+                                                            |
+                                                       PATCH /api/v1/atcs/{id}
+                                                       [BK-96: If-Match split-brain — CLOSED]
 ```
 
 **Chain 1 — Auth → RLS → Everything**: If the workspace member record for a user is missing or suspended, that user has zero RLS access to any data in any table. Every test that requires data access must first verify the membership state is `active`. A test that bypasses this by inserting data directly via `qa_inspector_rw` will create data that the application user cannot see — tests will pass in isolation but fail in integration.
 
-**Chain 2 — PAT → Bearer Auth → SDET Pipelines**: A misconfigured PAT (wrong scope, wrong workspace, expired) silently fails with 401. Any SDET automation that doesn't verify the PAT is valid immediately after minting will spend hours debugging downstream `unauthorized` errors that trace back to a PAT configuration problem from setup. The workspace endpoint Bearer gap (GET /workspaces/{id} is cookie-only) also lives in this chain — an agent that calls `/me` successfully but then fails on `/workspaces/{id}` will look like a permissions problem, not a known architectural limitation.
+**Chain 2 — PAT → Bearer Auth → SDET Pipelines**: BK-84 empirically confirmed a staging-wide `requireAuth` middleware regression that silently blocked PATs on all member-only routes. Any SDET automation that doesn't verify the PAT is valid immediately after minting will spend hours debugging downstream `unauthorized` errors. Workspace endpoint Bearer gap (GET /workspaces/{id} is cookie-only) also lives in this chain — an agent that calls `/me` successfully but then fails on `/workspaces/{id}` will look like a permissions problem, not a known architectural limitation.
 
-**Chain 3 — AC Existence → ATC Anchoring**: The `AnchoringPanel` in the ATC editor loads all ACs for all stories in the project. If no ACs exist (new project, no stories created yet), the panel is empty and the save button is functionally disabled by the application guard. But via direct RPC, an empty `ac_ids` array goes through. This chain means: any test fixture that creates ATCs without first creating a complete story + AC hierarchy is either testing the wrong thing (RPC bypass) or will fail in the UI (application guard). Test fixture setup order matters here.
+**Chain 3 — AC Existence → ATC Anchoring**: The `AnchoringPanel` in the ATC editor loads all ACs for all stories in the project. If no ACs exist (new project, no stories created yet), the panel is empty and the save button is functionally disabled by the application guard. But via direct RPC, an empty `ac_ids` array goes through. Test fixture setup order matters here — create workspace → project → module → story → AC BEFORE attempting ATC creation, or you'll be testing the wrong code path.
 
 ---
 
@@ -374,7 +428,7 @@ Project Tree (PostgREST via RSC)
 
 **Concurrency**
 
-- Two users simultaneously calling `bunkai_save_atc` on the same ATC: the RPC does a full DELETE+INSERT of steps, assertions, and bindings. Postgres will serialize these (transaction isolation), but the `atcs.version` counter is the optimistic-lock handle. If User B saves while User A's save is in flight, B's response arrives with a newer version. When A tries to save, they're submitting against a now-stale version — the UI doesn't yet have version-conflict detection, so A's save silently overwrites B's changes. This is a data-loss scenario with no warning.
+- Two users simultaneously calling `bunkai_save_atc` on the same ATC: the RPC does a full DELETE+INSERT of steps, assertions, and bindings. Postgres will serialize these (transaction isolation), but the `atcs.version` counter is the optimistic-lock handle. If User B saves while User A's save is in flight, B's response arrives with a newer version. When A tries to save, they're submitting against a now-stale version — the UI doesn't yet have version-conflict detection, so A's save silently overwrites B's changes. This is a data-loss scenario with no warning. BK-96 confirmed the PATCH version-conflict path is already broken in a different way — fix that before adding UI-level conflict detection.
 - Concurrent workspace creation with the same slug: the `bunkai_bootstrap_workspace` RPC wraps workspace + member inserts in a transaction, and the slug UNIQUE constraint will cause the second concurrent insert to fail. Verify the 409 response is clean, not a raw Postgres error leaking through the error handler.
 
 ---
@@ -384,6 +438,7 @@ Project Tree (PostgREST via RSC)
 - A `viewer`-role workspace member attempting to call PostgREST directly to INSERT a user story or ATC — the RLS `bunkai_can_write_workspace` helper should reject this. Most tests use `member` or `admin` roles; explicitly test `viewer` role boundaries.
 - A PAT with `atc:read` scope attempting to call `bunkai_save_atc` — confirm the scope check rejects this before reaching the DB, not after.
 - A workspace `admin` attempting to grant `owner` role via invite — the `workspace_invites.role` CHECK constraint blocks this at the DB level. Verify the application error message is descriptive, not a raw constraint violation.
+- A `member`-role user minting a PAT with `workspace:admin` scope (BK-117) — this should be 403 once the fix lands. Until the fix lands, treat any member-issued `workspace:admin` PAT as a security incident.
 
 ---
 
@@ -409,24 +464,31 @@ Project Tree (PostgREST via RSC)
 
 ---
 
+**Data Validation — Byte Cap / Unit Mismatch**
+
+- AC description and user story description byte caps use **decimal kilobytes** (50,000 bytes = 50 × 1000), not binary kibibytes (51,200 bytes = 50 × 1024). Sprint testing BK-15 (BK-143) confirmed that 51,200-byte payloads are rejected with 422 even though the spec says "50 KB." This is a specification-vs-implementation drift — either the spec needs to say "50,000 bytes" or the code needs to use `50 * 1024`. Both client-side counter display and server-side validation must agree on which unit is being used (BK-99 confirmed the submit guard was also missing — both client and server gaps coexisted).
+- Any future field with a size limit: explicitly specify and test BOTH the decimal and binary interpretations, and include a test at exactly the boundary value (e.g., 50,000 bytes, 50,001 bytes, 51,200 bytes, 51,201 bytes).
+
+---
+
 ## 8. Pre-Release Checklist
 
 Ordered CRITICAL first, then HIGH. Maximum 15 items.
 
 1. **Verify `bunkai_save_atc` RPC rejects empty `ac_ids` array** — call the RPC directly with `p_ac_ids = '{}'::uuid[]` and confirm a DB-level error is returned, not a silent success.
 2. **Verify cross-workspace RLS isolation for all PostgREST-only entities** — authenticated as Workspace A member, confirm zero Workspace B rows returned from `atcs`, `user_stories`, `acceptance_criteria`, `modules`, `projects`.
-3. **Verify PAT authentication end-to-end post-fix** — mint a fresh PAT, use it on `GET /api/v1/me`, confirm correct user and workspace returned; use a revoked PAT and confirm 401.
-4. **Verify `GET /api/v1/workspaces/{id}` returns 401/unsupported when called with Bearer** — confirm headless agents receive a clear signal rather than silent data absence.
-5. **Verify `magic_link_tokens.consumed_at` gap is documented as a defect** — confirm the column exists, confirm it is null after OTP exchange, file defect before production auth goes live.
-6. **Verify invite acceptance email-match check with mixed-case email** — `User@Example.COM` invite, `user@example.com` acceptor, confirm acceptance succeeds; `other@example.com` acceptor, confirm 403.
-7. **Verify reserved slug rejection on workspace creation** — test all 16 reserved slugs return validation error, not 409 conflict.
-8. **Verify env var setup with only `.env.example` values** — deploy a fresh environment using exactly the keys in `.env.example`; confirm `middleware.ts` reads `NEXT_PUBLIC_SUPABASE_ANON_KEY` correctly (known mismatch with `SUPABASE_PUBLISHABLE_KEY`).
-9. **Verify headless signup 409 conflict response** — duplicate email signup returns `conflict` with a message directing caller to `/auth/signin`.
-10. **Verify `bunkai_bootstrap_workspace` atomicity** — simulate a DB error after workspace INSERT but before workspace_members INSERT; confirm no orphaned workspace rows exist.
-11. **Verify ATC GIN search trigger post-save** — save an ATC with a unique title, immediately query `atcs` with `tsv @@ to_tsquery(unique_title)`, confirm the row is returned.
-12. **Verify activity_log writes fire for key actions** — after workspace creation, invite issuance, and PAT mint, query `activity_log` via `qa_inspector_ro` and confirm rows exist.
-13. **Verify `access_tokens.last_used_at` is updated on Bearer auth** — use a PAT, then query the token row via `qa_inspector_ro`, confirm `last_used_at` was stamped.
-14. **Verify invite rotation re-opens without allowing wrong-email acceptance** — rotate an accepted invite, confirm the new token cannot be accepted by a user whose email doesn't match the original invite email.
+3. **Verify PAT authentication end-to-end, all member-owned routes** — mint a fresh PAT, use it on `GET /api/v1/me`, `GET /api/v1/tokens`, `POST /api/v1/workspaces/{id}/projects` — confirm 200 on each (regression for BK-84).
+4. **Verify `workspace:admin` scope requires admin/owner role** — as a member-role user, `POST /api/v1/tokens` with `workspace:admin` scope must return 403, not 201 (regression for BK-117/134 — currently OPEN).
+5. **Verify `PATCH /api/v1/atcs/{id}` with correct `If-Match` returns 200 and commits once** — confirm split-brain (412 + silent commit) is resolved (regression for BK-96).
+6. **Verify invite acceptance preserves higher role on upsert** — owner accepts a member-role invite for own email; confirm owner role is NOT demoted (regression for BK-62).
+7. **Verify invite issuance rejects duplicate email** — `POST /invites` with email of an active member returns 409, not 201 (regression for BK-60).
+8. **Verify `magic_link_tokens.consumed_at` gap is documented as a defect** — confirm the column exists, confirm it is null after OTP exchange, file defect before production auth goes live.
+9. **Verify invite acceptance email-match check with mixed-case email** — `User@Example.COM` invite, `user@example.com` acceptor, confirm acceptance succeeds; `other@example.com` acceptor, confirm 403.
+10. **Verify reserved slug rejection on workspace creation** — test all 16 reserved slugs return validation error, not 409 conflict.
+11. **Verify env var setup with only `.env.example` values** — deploy a fresh environment using exactly the keys in `.env.example`; confirm `middleware.ts` reads `NEXT_PUBLIC_SUPABASE_ANON_KEY` correctly (known mismatch with `SUPABASE_PUBLISHABLE_KEY`).
+12. **Verify AC/story description byte cap boundary** — test at 49,999 bytes (accept), 50,000 bytes (accept — current behavior), 50,001 bytes (reject), 51,200 bytes (reject — per spec if decimal unit confirmed) (regression for BK-143).
+13. **Verify ATC GIN search trigger post-save** — save an ATC with a unique title, immediately query `atcs` with `tsv @@ to_tsquery(unique_title)`, confirm the row is returned.
+14. **Verify activity_log writes fire for key actions** — after workspace creation, invite issuance, and PAT mint, query `activity_log` via `qa_inspector_ro` and confirm rows exist.
 15. **Verify health endpoint returns 200 but document DB-blind limitation** — confirm `GET /api/v1/health` returns 200 and is correctly documented as a liveness probe only (not a readiness probe); file a defect requesting DB connectivity check before production.
 
 ---
@@ -448,7 +510,7 @@ This document is a risk-ranked testing rationale. The following artifacts are do
 
 ## 10. Discovery Gaps
 
-These are things this plan cannot fully ground in evidence from the available sources. "We don't know" is documented here rather than guessed.
+These are things this plan cannot fully ground in evidence from the available sources.
 
 **Gap 1 — `auth/callback` route not directly read**
 The OTP exchange logic at `/auth/callback` was inferred from the Supabase SSR pattern and `backend.md` description, but the actual file content was not read. The open-redirect guard on `next`, the `exchangeCodeForSession(code)` call, and the redirect behavior are assumed — not confirmed. Any test of the magic-link callback flow should start by reading this file.
@@ -460,7 +522,7 @@ The OTP exchange logic at `/auth/callback` was inferred from the Supabase SSR pa
 The data map and feature map both document this as a confirmed gap based on migration file review, but the exact migration 0007 DDL was not reproduced here. Verify directly against the live DB by calling `\sf bunkai_save_atc` in psql or via DBHub before asserting defect vs. design.
 
 **Gap 4 — No CI pipeline means no baseline regression data**
-This plan cannot reference "historical breakage rates" because no automated suite has been run against this codebase. Every risk rating in this document is based on structural analysis, not empirical failure history. As the first test suite is built, update this plan with actual observed failure patterns.
+This plan cannot reference "historical breakage rates" from automated runs. Every risk rating is based on structural analysis and sprint-testing session findings. As the first test suite is built, update this plan with actual observed failure patterns. Sprint sessions BK-5 through BK-19 provide the closest thing to empirical failure history available today.
 
 **Gap 5 — `qa_inspector_ro`/`qa_inspector_rw` DB roles are provisioned out-of-band**
 These roles are REVOKED from secret sibling tables in migration 0011, but their `CREATE ROLE` DDL is absent from all migrations. A fresh DB setup from migrations alone will not have these roles — they must be created manually via Supabase Studio or a separate out-of-band script. Any QA environment setup doc needs to capture this step explicitly.
@@ -468,10 +530,16 @@ These roles are REVOKED from secret sibling tables in migration 0011, but their 
 **Gap 6 — `workspace_invite_secrets` migration 0011 timing**
 Invites created before migration 0011 (which introduced the secret sibling pattern) may not have corresponding `workspace_invite_secrets` rows. The data behavior of token rotation on pre-0011 invites is unknown — this gap affects any workspace that was bootstrapped before 0011 was applied.
 
-**Gap 7 — Feature map was available at generation time**
+**Gap 7 — BK-96 root cause not confirmed (Vercel edge vs. application layer)**
+BK-96 (PATCH If-Match split-brain) is closed but the root cause between two hypotheses was not confirmed: (a) the `If-Match` precondition handler comparing the version against the post-increment value; (b) Vercel edge intercepting the `If-Match` header independently of the function body. Until the confirmed root cause is documented, any PATCH endpoint using `If-Match` should be treated as a potential regression target after Vercel-side changes or middleware updates.
+
+**Gap 8 — `workspace:admin` scope enforcement fix not yet deployed**
+BK-117/134/135 are open. As of 2026-06-19, member-role users can still self-issue `workspace:admin` PATs. Any test environment that has been used for sprint testing should be treated as having privilege-escalated tokens in its `access_tokens` table. A cleanup sweep (revoke all `workspace:admin` PATs owned by non-admin/non-owner users) is recommended before using staging as a clean baseline for security tests.
+
+**Gap 9 — Feature map was available at generation time**
 The feature map was present and fully read. No feature-map limitation applies to this plan. All 34 features (+ planned) were incorporated into risk scoring.
 
 ---
 
-*Sources used: `.context/business/business-data-map.md` (991 lines), `.context/business/business-feature-map.md` (1094 lines), `.context/SRS/functional-specs.md` (372 lines)*
+*Sources used: `.context/business/business-data-map.md` (991 lines), `.context/business/business-feature-map.md` (1094 lines), sprint-testing bug tracker (BK-5, BK-7/BK-8/BK-9, BK-15, BK-18/BK-19 sessions — 25+ confirmed defects incorporated)*
 *Regenerate with: `/master-test-plan` after running `/business-data-map` or `/business-feature-map` when content is updated*

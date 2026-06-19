@@ -3,7 +3,7 @@
 **Jira Key:** [BK-19](https://jira.upexgalaxy.com/browse/BK-19)
 **Epic:** [BK-13](https://jira.upexgalaxy.com/browse/BK-13) (ATC Library (Acceptance Test Cases))
 **Type:** Historia
-**Status:** Ready For QA
+**Status:** QA Approved
 **Priority:** Medium
 **Story Points:** 5
 **Web Link:** https://staging-upexbunkai.vercel.app/
@@ -59,10 +59,17 @@
 - [Out Of Scope](./out-of-scope.md)
 - [Workflow](./workflow.md)
 - [Acceptance Test Plan (QA)](./acceptance-test-plan.md)
+- [Acceptance Test Results (QA)](./acceptance-test-results.md)
 
 ---
 
 ## Traceability
+
+### Defects (3)
+
+- [BK-144](https://jira.upexgalaxy.com/browse/BK-144): ATC builder — tag input remains enabled at 10-tag maximum instead of being disabled _(Abierta)_
+- [BK-145](https://jira.upexgalaxy.com/browse/BK-145): ATC builder — mapApiError does not handle validation_failed + too_small shows generic error instead of field-level message for short title _(Abierta)_
+- [BK-146](https://jira.upexgalaxy.com/browse/BK-146): ATC builder — module outside project subtree returns 404 not_found instead of 422 module_outside_project_subtree _(Abierta)_
 
 ### Historia (1)
 
@@ -73,7 +80,7 @@
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/18/2026
+- **Updated:** 6/19/2026
 - **Reporter:** Ely
 - **Assignee:** maibeth vega
 - **Labels:** atc, frontend, mvp, shift-left-2026-06-05, shift-left-2026-06-18, shift-left-reviewed, ui, wave-2

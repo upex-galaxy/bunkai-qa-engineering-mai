@@ -94,5 +94,51 @@ Full refinement: `.context/PBI/epics/EPIC-BK-13/stories/STORY-BK-19/shift-left-r
 
 ---
 
+### maibeth vega - 6/18/2026, 11:30:03 PM
+
+## Sprint Testing Results — BK-19: TMS-ATC Builder
+
+***Tester******:*** maibethvega
+***Environment******:*** staging (https://staging-upexbunkai.vercel.app)
+***Date******:*** 2026-06-18
+***Overall Result******:*** PARTIAL PASS
+
+### Summary
+
+| Status | Count |
+| --- | --- |
+| PASSED | 35 |
+| BLOCKED | 8 |
+| FAILED | 0 |
+| Total | 43 |
+
+### CRITICAL — Anchoring Moat Verdict: PASS
+
+All three CRITICAL TCs passed:
+
+- ***TC-02*** — `acceptance*criterion*ids` non-empty confirmed via GET /api/v1/atcs/{id}
+- ***TC-03*** — Linked AC belongs to the User Story selected in the form
+- ***TC-04*** — Server returns 422 when `ac_ids` is empty — UI gate is backed by server gate
+
+### Blockers (8 TCs — not FAILED)
+
+8 TCs could not be executed due to:
+
+- Monaco editor does not sync state in Playwright headless (TC-29, TC-30, TC-34)
+- Supabase session expiry requires magic-link re-auth in automated context (TC-31, TC-33, TC-40, TC-41)
+- No second workspace on staging to test cross-workspace rejection (TC-42)
+
+These are environment/tooling constraints, not feature failures.
+
+### Bugs Filed (3 — all LOW)
+
+- BUG-1: Tag input not disabled at 10-tag maximum — silent failure UX
+- BUG-2: `mapApiError` does not handle `validation*failed + too*small` — generic error shown for short title server response
+- BUG-3: Module outside subtree returns 404 instead of 422 `module*outside*project_subtree`
+
+None of these are blockers for release. Feature core and CRITICAL flows all passed.
+
+---
+
 
 _Synced from Jira by sync-jira-issues_

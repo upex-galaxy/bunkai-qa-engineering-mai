@@ -61,7 +61,7 @@
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/18/2026
+- **Updated:** 6/19/2026
 - **Reporter:** Ely
 - **Assignee:** maibeth vega
 - **Labels:** acceptance-criteria, mvp, shift-left-reviewed, wave-2
