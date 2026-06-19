@@ -361,7 +361,7 @@ work_types:
       in_progress: { description: Developer actively fixing }
       in_review: { description: Pull request open }
       ready_for_qa: { description: Fix deployed; defect ready to retest }
-      closed: { description: 'Defect verified fixed (terminal)' }
+      closed: { description: Defect verified fixed (terminal) }
       deferred: { description: Defect accepted but postponed }
       cannot_reproduce: { description: Defect closed because the team cannot reproduce (terminal) }
       duplicated: { description: Defect closed as duplicate (terminal) }
