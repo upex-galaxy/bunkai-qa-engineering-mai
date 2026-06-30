@@ -3,7 +3,7 @@
 **Jira Key:** [BK-143](https://jira.upexgalaxy.com/browse/BK-143)
 **Priority:** Medium
 **Status:** Abierta
-**Components:** None
+**Components:** User Stories & Acceptance Criteria
 
 ---
 
@@ -43,7 +43,7 @@ TC-25 FAILED during BK-15 QA session (2026-06-18). Root cause: MAX*AC*DESCRIPTIO
 ## Metadata
 
 - **Created:** 6/18/2026
-- **Updated:** 6/19/2026
+- **Updated:** 6/26/2026
 - **Reporter:** maibeth vega
 - **Assignee:** maibeth vega
 - **Labels:** acceptance-criteria, bug, exploratory-testing

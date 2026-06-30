@@ -1,9 +1,9 @@
 # DEFECT: ATC builder — tag input remains enabled at 10-tag maximum instead of being disabled
 
 **Jira Key:** [BK-144](https://jira.upexgalaxy.com/browse/BK-144)
-**Priority:** Medium
+**Priority:** Low
 **Status:** Abierta
-**Components:** None
+**Components:** ATC Library (Acceptance Test Cases)
 
 ---
 
@@ -46,7 +46,7 @@ BK-19 — TMS-ATC Builder
 ## Metadata
 
 - **Created:** 6/18/2026
-- **Updated:** 6/19/2026
+- **Updated:** 6/25/2026
 - **Reporter:** maibeth vega
 - **Assignee:** maibeth vega
 - **Labels:** bk-19, sprint-testing

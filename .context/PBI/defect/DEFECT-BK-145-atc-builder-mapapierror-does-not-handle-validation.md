@@ -1,9 +1,9 @@
 # DEFECT: ATC builder — mapApiError does not handle validation_failed + too_small shows generic error instead of field-level message for short title
 
 **Jira Key:** [BK-145](https://jira.upexgalaxy.com/browse/BK-145)
-**Priority:** Medium
+**Priority:** Low
 **Status:** Abierta
-**Components:** None
+**Components:** ATC Library (Acceptance Test Cases)
 
 ---
 
@@ -45,7 +45,7 @@ BK-19 — TMS-ATC Builder
 ## Metadata
 
 - **Created:** 6/18/2026
-- **Updated:** 6/19/2026
+- **Updated:** 6/25/2026
 - **Reporter:** maibeth vega
 - **Assignee:** maibeth vega
 - **Labels:** bk-19, sprint-testing

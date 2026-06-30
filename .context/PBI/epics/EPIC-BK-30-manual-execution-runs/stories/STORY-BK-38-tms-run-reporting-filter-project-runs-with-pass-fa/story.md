@@ -186,7 +186,7 @@ AC, ATP, and Business Rules are included in this description because the Jira cu
 
 ### Historia (1)
 
-- [BK-34](https://jira.upexgalaxy.com/browse/BK-34): TMS-Run Execution | Start a manual run in a chosen environment _(Ready For Dev)_
+- [BK-34](https://jira.upexgalaxy.com/browse/BK-34): TMS-Run Execution | Start a manual run in a chosen environment _(QA Approved)_
 
 ---
 

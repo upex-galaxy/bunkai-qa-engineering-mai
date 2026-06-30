@@ -98,13 +98,13 @@ Shift-Left QA reviewed this Story. The full ATP DRAFT (25 scenarios across Posit
 
 ### Historias (7)
 
-- [BK-33](https://jira.upexgalaxy.com/browse/BK-33): TMS-Test Tags | Assign reserved and custom tags to a test _(Ready For Dev)_
-- [BK-34](https://jira.upexgalaxy.com/browse/BK-34): TMS-Run Execution | Start a manual run in a chosen environment _(Ready For Dev)_
-- [BK-32](https://jira.upexgalaxy.com/browse/BK-32): TMS-Test View | View a test with all chained ATCs expanded _(Ready For QA)_
-- [BK-28](https://jira.upexgalaxy.com/browse/BK-28): TMS-Test Builder | Reorder ATCs inside a test _(Ready For QA)_
-- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(In Test)_
-- [BK-21](https://jira.upexgalaxy.com/browse/BK-21): TMS-ATC Propagation | Cascade ATC edits to all tests _(Ready For Dev)_
-- [BK-22](https://jira.upexgalaxy.com/browse/BK-22): TMS-ATC Usage | See a "Used in N tests" report _(Ready For Dev)_
+- [BK-33](https://jira.upexgalaxy.com/browse/BK-33): TMS-Test Tags | Assign reserved and custom tags to a test _(QA Approved)_
+- [BK-34](https://jira.upexgalaxy.com/browse/BK-34): TMS-Run Execution | Start a manual run in a chosen environment _(QA Approved)_
+- [BK-32](https://jira.upexgalaxy.com/browse/BK-32): TMS-Test View | View a test with all chained ATCs expanded _(QA Approved)_
+- [BK-28](https://jira.upexgalaxy.com/browse/BK-28): TMS-Test Builder | Reorder ATCs inside a test _(QA Approved)_
+- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(QA Approved)_
+- [BK-21](https://jira.upexgalaxy.com/browse/BK-21): TMS-ATC Propagation | Cascade ATC edits to all tests _(In Test)_
+- [BK-22](https://jira.upexgalaxy.com/browse/BK-22): TMS-ATC Usage | See a "Used in N tests" report _(Ready For QA)_
 
 ---
 

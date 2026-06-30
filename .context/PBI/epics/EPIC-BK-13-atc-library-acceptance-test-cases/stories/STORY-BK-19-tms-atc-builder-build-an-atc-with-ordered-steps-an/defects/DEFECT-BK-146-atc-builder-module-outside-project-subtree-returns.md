@@ -4,7 +4,10 @@
 **Related Story:** [BK-19](https://jira.upexgalaxy.com/browse/BK-19) - TMS-ATC Builder | Build an ATC with ordered steps and assertions
 **Priority:** Medium
 **Status:** Abierta
-**Components:** None
+**Components:** ATC Library (Acceptance Test Cases)
+**Severity:** Moderada
+**Error Type:** Functional
+**Test Environment:** Staging
 **Fix Type:** Bugfix
 
 ---
@@ -38,6 +41,12 @@ BK-19 — TMS-ATC Builder
 
 ---
 
+## 🔍 Root Cause
+
+**Category:** Code Error
+
+---
+
 ## Related Issues
 
 - created: [BK-19](https://jira.upexgalaxy.com/browse/BK-19) - TMS-ATC Builder | Build an ATC with ordered steps and assertions
@@ -47,7 +56,7 @@ BK-19 — TMS-ATC Builder
 ## Metadata
 
 - **Created:** 6/18/2026
-- **Updated:** 6/19/2026
+- **Updated:** 6/25/2026
 - **Reporter:** maibeth vega
 - **Assignee:** maibeth vega
 - **Labels:** bk-19, sprint-testing

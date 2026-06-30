@@ -55,9 +55,9 @@
 ## Metadata
 
 - **Created:** 5/28/2026
-- **Updated:** 6/5/2026
+- **Updated:** 6/30/2026
 - **Reporter:** Ely
-- **Assignee:** Unassigned
+- **Assignee:** Nahuel Gomez
 
 ---
 

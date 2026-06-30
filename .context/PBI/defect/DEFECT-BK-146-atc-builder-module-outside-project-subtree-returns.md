@@ -3,7 +3,7 @@
 **Jira Key:** [BK-146](https://jira.upexgalaxy.com/browse/BK-146)
 **Priority:** Medium
 **Status:** Abierta
-**Components:** None
+**Components:** ATC Library (Acceptance Test Cases)
 
 ---
 
@@ -45,7 +45,7 @@ BK-19 — TMS-ATC Builder
 ## Metadata
 
 - **Created:** 6/18/2026
-- **Updated:** 6/19/2026
+- **Updated:** 6/25/2026
 - **Reporter:** maibeth vega
 - **Assignee:** maibeth vega
 - **Labels:** bk-19, sprint-testing

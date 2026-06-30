@@ -3,7 +3,7 @@
 **Jira Key:** [BK-23](https://jira.upexgalaxy.com/browse/BK-23)
 **Epic:** [BK-13](https://jira.upexgalaxy.com/browse/BK-13) (ATC Library (Acceptance Test Cases))
 **Type:** Historia
-**Status:** Ready For Dev
+**Status:** BLOCKED
 **Priority:** Medium
 **Story Points:** 5
 **Web Link:** https://staging-upexbunkai.vercel.app/
@@ -38,23 +38,35 @@
 - [Scope](./scope.md)
 - [Out Of Scope](./out-of-scope.md)
 - [Workflow](./workflow.md)
+- [Acceptance Test Plan (QA)](./acceptance-test-plan.md)
+- [Acceptance Test Results (QA)](./acceptance-test-results.md)
 
 ---
 
 ## Traceability
 
+### Defects (3)
+
+- [BK-184](https://jira.upexgalaxy.com/browse/BK-184): ATC Library: Duplicate: API field name mismatch — spec says new_title, implementation reads title _(Abierta)_
+- [BK-185](https://jira.upexgalaxy.com/browse/BK-185): ATC Library: Duplicate: No UI Duplicate action — feature has no UI entry point on staging _(Abierta)_
+- [BK-185](https://jira.upexgalaxy.com/browse/BK-185): ATC Library: Duplicate: No UI Duplicate action — feature has no UI entry point on staging _(Abierta)_
+
+### Error (1)
+
+- [BK-175](https://jira.upexgalaxy.com/browse/BK-175): Auth: Login: Magic-link OTP email has no code-entry field on staging _(Abierta)_
+
 ### Historia (1)
 
-- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(In Test)_
+- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(QA Approved)_
 
 ---
 
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/8/2026
+- **Updated:** 6/28/2026
 - **Reporter:** Ely
-- **Assignee:** Benjamin Segovia
+- **Assignee:** Ely
 - **Labels:** atc, clone, mvp, wave-2
 
 ---

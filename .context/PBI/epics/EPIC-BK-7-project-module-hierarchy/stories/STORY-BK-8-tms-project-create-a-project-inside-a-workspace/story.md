@@ -3,7 +3,7 @@
 **Jira Key:** [BK-8](https://jira.upexgalaxy.com/browse/BK-8)
 **Epic:** [BK-7](https://jira.upexgalaxy.com/browse/BK-7) (Project & Module Hierarchy)
 **Type:** Historia
-**Status:** QA Approved
+**Status:** Ready For Release
 **Priority:** Medium
 **Story Points:** 8
 **Web Link:** https://staging-upexbunkai.vercel.app/
@@ -85,7 +85,7 @@ As a Workspace member, I want to create a Project inside a Workspace so that I c
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/15/2026
+- **Updated:** 6/26/2026
 - **Reporter:** Ely
 - **Assignee:** Nahuel Gomez
 - **Labels:** hierarchy, mvp, shift-left-2026-05-28, shift-left-reviewed, wave-1

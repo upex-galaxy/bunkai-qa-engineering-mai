@@ -81,20 +81,24 @@ As an autonomous AI test agent operator (Karim) I want to issue, list, and revok
 
 ### Error (1)
 
-- [BK-135](https://jira.upexgalaxy.com/browse/BK-135): POST /api/v1/tokens issues workspace:admin tokens to member-role users without 403 enforcement _(Abierta)_
+- [BK-135](https://jira.upexgalaxy.com/browse/BK-135): POST /api/v1/tokens issues workspace:admin tokens to member-role users without 403 enforcement _(Cerrada)_
 
 ### Historia (1)
 
 - [BK-87](https://jira.upexgalaxy.com/browse/BK-87): Settings | Open a settings hub and view my account _(Ready For Dev)_
+
+### Tech Story (1)
+
+- [BK-167](https://jira.upexgalaxy.com/browse/BK-167): Enforce workspace:admin scope on admin endpoints (consumption-side) _(FIXED)_
 
 ---
 
 ## Metadata
 
 - **Created:** 6/7/2026
-- **Updated:** 6/12/2026
+- **Updated:** 6/25/2026
 - **Reporter:** Ely
-- **Assignee:** Carlos Alberto Chiavassa
+- **Assignee:** Ely
 - **Labels:** shift-left-2026-06-10, shift-left-reviewed
 
 ---

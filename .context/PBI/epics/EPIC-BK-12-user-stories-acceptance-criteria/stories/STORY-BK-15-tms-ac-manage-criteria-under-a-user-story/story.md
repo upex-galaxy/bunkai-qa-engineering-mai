@@ -52,9 +52,9 @@
 
 ### Historias (3)
 
-- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(In Test)_
+- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(QA Approved)_
 - [BK-14](https://jira.upexgalaxy.com/browse/BK-14): TMS-US | Manage user stories anchored to a module _(Ready For QA)_
-- [BK-17](https://jira.upexgalaxy.com/browse/BK-17): Jira Import | Pull Jira issues by JQL _(BLOCKED)_
+- [BK-17](https://jira.upexgalaxy.com/browse/BK-17): Jira Import | Pull Jira issues by JQL _(QA Approved)_
 
 ---
 
