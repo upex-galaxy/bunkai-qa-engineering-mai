@@ -226,6 +226,16 @@ required:
     description: Per-Test issue execution status (Jira-native TMS).
     used_by: [test-documentation]
 
+  # ---- QA ownership field (defect-management doctrine) ----
+  qa_assignee:
+    name: QA Assignee
+    type: string
+    description: |
+      QA engineer who owns this issue. Single user-picker field set on Story pickup
+      and Bug/Defect filing. Never overwritten if already set to another person.
+      Referenced by defect-management-doctrine; set via /sprint-testing and /shift-left-testing.
+    used_by: [sprint-testing, shift-left-testing, agentic-qa-core]
+
 optional:
   # Fields that enhance the workflow but won't break it if missing.
   to_be_automated:
@@ -533,3 +543,18 @@ link_types:
       name: Problem/Incident
       description: Links a defect to the story or problem it is associated with.
       used_by: [sprint-testing]
+  optional:
+    test_design:
+      name: designs
+      description: |
+        Links ATP to TC (ATP "designs" TC / TC "is designed by" ATP). Used for Modality
+        jira-native TMS traceability. Actual Jira link-type name resolved per workspace
+        by `bun run jira:sync-link-types`.
+      used_by: [test-documentation]
+    test_execute:
+      name: executes
+      description: |
+        Links ATR to TC (ATR "executes" TC / TC "is executed by" ATR). Used for Modality
+        jira-native TMS traceability. Actual Jira link-type name resolved per workspace
+        by `bun run jira:sync-link-types`.
+      used_by: [test-documentation]

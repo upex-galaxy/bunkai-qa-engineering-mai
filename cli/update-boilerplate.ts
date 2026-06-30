@@ -9,6 +9,7 @@
 
 import type { Component, ReportSink, RunSummary, UpdaterConfig } from './lib/updater-types';
 import { execSync, spawnSync } from 'node:child_process';
+import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -309,6 +310,267 @@ function makeSkillsRegistryHook(
   };
 }
 
+// --- GIT_STRATEGY UPSERT (afterApply hook) ---
+//
+// The `git_strategy:` block in `.agents/project.yaml` (git workflow definition,
+// read by the git-flow-master skill) was added to the boilerplate AFTER some
+// projects were already scaffolded. `.agents/project.yaml` is bootstrapOnly, so
+// the regular sync NEVER overwrites it — a pre-feature project would silently
+// stay without the block. This hook back-fills it ONCE, APPEND-ONLY.
+//
+// HARD CONSTRAINT: append-only. It NEVER edits, reorders, or deletes any
+// existing line in the consumer's project.yaml — it only appends the missing
+// block at EOF. This preserves every user-set value verbatim.
+//
+// Like makeEnvDriftHook, the upstream clone still sits in `tempDir` (cleanup
+// happens after afterApply). We lift the `git_strategy:` block (with its leading
+// comment header) out of the upstream copy and append it to the consumer's file.
+
+/**
+ * Extract the `git_strategy:` block from an upstream `.agents/project.yaml`,
+ * INCLUDING the contiguous comment header immediately preceding it.
+ *
+ * Strategy: find the `git_strategy:` line, walk BACKWARDS over contiguous
+ * leading `#` comment lines to capture the header, then walk FORWARDS over all
+ * indented (space-prefixed) lines until the next top-level key or top-level
+ * comment introducing another section. Returns the block as a trimmed string,
+ * or null if no `git_strategy:` key exists upstream.
+ */
+function extractUpstreamGitStrategyBlock(upstreamYaml: string): string | null {
+  const lines = upstreamYaml.split('\n');
+  const keyIdx = lines.findIndex(l => l.startsWith('git_strategy:'));
+  if (keyIdx === -1) { return null; }
+
+  // Walk backwards over the contiguous comment header (stop at blank/non-comment).
+  let start = keyIdx;
+  while (start - 1 >= 0 && /^\s*#/.test(lines[start - 1])) { start -= 1; }
+
+  // Walk forwards over indented body lines (block scalars, nested keys, lists).
+  let end = keyIdx; // inclusive index of last block line
+  for (let i = keyIdx + 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (line.trim() === '') { continue; } // blank lines inside the block are tolerated
+    if (/^\s/.test(line)) { end = i; continue; } // indented → still part of the block
+    break; // top-level key or top-level comment → block ended
+  }
+
+  return lines.slice(start, end + 1).join('\n').trimEnd();
+}
+
+/**
+ * Build the `afterApply` hook that back-fills a missing `git_strategy:` block.
+ *
+ * Captures `tempDir` (upstream clone), `sink` (for `confirm`), and `auto`
+ * (CI gate) — mirroring makeEnvDriftHook. Append-only; never modifies existing
+ * lines.
+ */
+function makeGitStrategyUpsertHook(
+  tempDir: string,
+  sink: ReportSink,
+  auto: boolean,
+): (summary: RunSummary) => Promise<void> {
+  return async (_summary: RunSummary): Promise<void> => {
+    const consumerYaml = path.join(process.cwd(), '.agents', 'project.yaml');
+    if (!fs.existsSync(consumerYaml)) { return; }
+
+    let consumerContent: string;
+    try {
+      consumerContent = fs.readFileSync(consumerYaml, 'utf8');
+    }
+    catch {
+      return; // unreadable consumer file — nothing to do.
+    }
+
+    // Already has a top-level git_strategy block → NO-OP. Never touch it.
+    if (/^git_strategy:/m.test(consumerContent)) { return; }
+
+    // Absent → pre-feature project. Lift the block from the upstream clone.
+    const upstreamYaml = path.join(tempDir, '.agents', 'project.yaml');
+    if (!fs.existsSync(upstreamYaml)) { return; }
+
+    let block: string | null;
+    try {
+      block = extractUpstreamGitStrategyBlock(fs.readFileSync(upstreamYaml, 'utf8'));
+    }
+    catch {
+      return; // unreadable upstream — skip.
+    }
+    if (!block) { return; }
+
+    // CI / non-interactive: never modify the file — just flag it.
+    if (auto) {
+      sink.warn('Tu `.agents/project.yaml` no tiene el bloque `git_strategy` (definición del flujo de git).');
+      sink.step('Modo --auto: ejecuta el updater de forma interactiva para agregarlo (o añádelo manualmente).');
+      return;
+    }
+
+    // Interactive: OFFER to append (append-only — existing values untouched).
+    const proceed = await sink.confirm(
+      'Tu `.agents/project.yaml` no tiene el nuevo bloque `git_strategy` (definición del flujo de git). ¿Agregarlo ahora? (append-only — tus valores existentes nunca se modifican)',
+      false,
+    );
+    if (!proceed) {
+      sink.step('Omitido. Puedes agregar el bloque `git_strategy` más tarde.');
+      return;
+    }
+
+    // APPEND ONLY — preserve the existing file verbatim, and prepend exactly one
+    // blank line before the block regardless of the file's trailing-newline state:
+    //  - ends with "\n"  → add "\n" (a blank line) then the block.
+    //  - no trailing "\n" → add "\n\n" (close the last line + a blank line).
+    const sep = consumerContent.endsWith('\n') ? '\n' : '\n\n';
+    try {
+      fs.appendFileSync(consumerYaml, `${sep}${block}\n`);
+    }
+    catch (err) {
+      sink.warn(`No se pudo agregar el bloque \`git_strategy\`: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
+    sink.step('Bloque `git_strategy` agregado al final de `.agents/project.yaml` (append-only).');
+    sink.step('Revisa la estrategia o ejecuta "set up our git strategy" en Claude (git-flow-master) para definir la tuya.');
+  };
+}
+
+// --- METHODOLOGY YAML BLOCK BACK-FILL (qa_epics, qa_assignee — afterApply hooks) ---
+//
+// Two defect-management blocks live in bootstrapOnly files (the sync NEVER
+// overwrites them): the `qa_epics` block under `qa:` in `.agents/project.yaml`,
+// and the `qa_assignee` required-field entry in `.agents/jira-required.yaml`. A
+// pre-existing downstream project would silently miss both — and because the
+// synced skills + doctrine reference `{{jira.qa_assignee}}` and `qa.qa_epics.*`,
+// a missing entry BREAKS that project's `vars:check` / `jira:check`. These hooks
+// back-fill the blocks INSERT-ONLY (never editing an existing line), idempotent
+// (skip when the key is already present), `--auto` only warns. Declaring
+// `qa_assignee` early is safe even before the field exists in the consumer's
+// Jira: it carries a comment fallback, so the slug resolves regardless.
+
+/**
+ * Extract a NESTED block (`<indent><key>:` + its deeper-indented body) from a
+ * YAML string, INCLUDING the contiguous comment header at the SAME indent that
+ * immediately precedes the key. Returns the block verbatim (original indentation
+ * preserved) or null when the key is absent at that indent.
+ */
+export function extractIndentedYamlBlock(yaml: string, key: string, indent: string): string | null {
+  const lines = yaml.split('\n');
+  const keyIdx = lines.findIndex(l => l.startsWith(`${indent}${key}:`));
+  if (keyIdx === -1) { return null; }
+  // Walk backwards over the contiguous comment header at the same indent.
+  let start = keyIdx;
+  while (start - 1 >= 0 && lines[start - 1].startsWith(`${indent}#`)) { start -= 1; }
+  // Walk forwards over body lines MORE indented than the key (blanks tolerated).
+  let end = keyIdx;
+  for (let i = keyIdx + 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (line.trim() === '') { continue; }
+    const leading = line.match(/^[ \t]*/)![0];
+    if (leading.length > indent.length) { end = i; continue; }
+    break; // same-or-shallower indent → sibling/parent → block ended
+  }
+  return lines.slice(start, end + 1).join('\n').replace(/[ \t\n]+$/, '');
+}
+
+/**
+ * Insert `block` at the END of a TOP-LEVEL `<sectionKey>:` section's body (after
+ * its last non-blank indented line, before the next top-level key). Returns the
+ * new YAML, or null when the section is absent. `block` must already carry the
+ * indentation of a child of that section.
+ */
+export function insertBlockAtEndOfSection(yaml: string, sectionKey: string, block: string): string | null {
+  const lines = yaml.split('\n');
+  const secIdx = lines.findIndex(l => l.startsWith(`${sectionKey}:`));
+  if (secIdx === -1) { return null; }
+  let lastContent = secIdx;
+  for (let i = secIdx + 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (line.trim() === '') { continue; }
+    if (/^[ \t]/.test(line)) { lastContent = i; continue; } // indented → still in section
+    break; // top-level key/comment → section ended
+  }
+  return [...lines.slice(0, lastContent + 1), block, ...lines.slice(lastContent + 1)].join('\n');
+}
+
+interface YamlBackfillSpec {
+  consumerRel: string
+  presence: RegExp
+  extract: (upstreamYaml: string) => string | null
+  insert: (consumerYaml: string, block: string) => string | null
+  label: string
+}
+
+const QA_EPICS_BACKFILL: YamlBackfillSpec = {
+  consumerRel: path.join('.agents', 'project.yaml'),
+  presence: /^[ \t]*qa_epics:/m,
+  extract: y => extractIndentedYamlBlock(y, 'qa_epics', '  '),
+  insert: (y, b) => insertBlockAtEndOfSection(y, 'qa', b),
+  label: 'qa_epics',
+};
+
+const QA_ASSIGNEE_BACKFILL: YamlBackfillSpec = {
+  consumerRel: path.join('.agents', 'jira-required.yaml'),
+  presence: /^[ \t]*qa_assignee:/m,
+  extract: y => extractIndentedYamlBlock(y, 'qa_assignee', '  '),
+  insert: (y, b) => insertBlockAtEndOfSection(y, 'required', b),
+  label: 'qa_assignee',
+};
+
+/**
+ * Build an afterApply hook that back-fills one missing methodology YAML block
+ * into a bootstrapOnly consumer file. Mirrors makeGitStrategyUpsertHook: the
+ * upstream clone still sits in `tempDir`; `--auto` only warns (never mutates).
+ */
+function makeYamlBackfillHook(
+  spec: YamlBackfillSpec,
+  tempDir: string,
+  sink: ReportSink,
+  auto: boolean,
+): (summary: RunSummary) => Promise<void> {
+  return async (_summary: RunSummary): Promise<void> => {
+    const consumerPath = path.join(process.cwd(), spec.consumerRel);
+    if (!fs.existsSync(consumerPath)) { return; }
+
+    let consumerContent: string;
+    try { consumerContent = fs.readFileSync(consumerPath, 'utf8'); }
+    catch { return; }
+
+    // Already present → NO-OP. Never touch it.
+    if (spec.presence.test(consumerContent)) { return; }
+
+    const upstreamPath = path.join(tempDir, spec.consumerRel);
+    if (!fs.existsSync(upstreamPath)) { return; }
+
+    let block: string | null;
+    try { block = spec.extract(fs.readFileSync(upstreamPath, 'utf8')); }
+    catch { return; }
+    if (!block) { return; }
+
+    const next = spec.insert(consumerContent, block);
+    if (next === null) { return; } // target section absent in consumer — skip silently
+
+    // CI / non-interactive: never modify the file — just flag it.
+    if (auto) {
+      sink.warn(`Tu \`${spec.consumerRel}\` no tiene el bloque \`${spec.label}\` (estándar de defect-management).`);
+      sink.step('Modo --auto: ejecuta el updater de forma interactiva para agregarlo (o añádelo manualmente).');
+      return;
+    }
+
+    const proceed = await sink.confirm(
+      `Tu \`${spec.consumerRel}\` no tiene el bloque \`${spec.label}\` (estándar de defect-management). ¿Agregarlo ahora? (insert-only — tus valores existentes nunca se modifican)`,
+      false,
+    );
+    if (!proceed) {
+      sink.step(`Omitido. Puedes agregar el bloque \`${spec.label}\` más tarde.`);
+      return;
+    }
+
+    try { fs.writeFileSync(consumerPath, next.endsWith('\n') ? next : `${next}\n`); }
+    catch (err) {
+      sink.warn(`No se pudo agregar \`${spec.label}\`: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
+    sink.step(`Bloque \`${spec.label}\` agregado a \`${spec.consumerRel}\` (insert-only).`);
+  };
+}
+
 /** Run several afterApply hooks in sequence (each isolated; one failure warns, never aborts). */
 function composeHooks(
   sink: ReportSink,
@@ -378,6 +640,103 @@ async function resolveSkillFilter(skills: string[]): Promise<Component[]> {
   cleanupTempDir(TEMP_DIR);
   const selectedPaths = skills.map(s => path.join(SKILLS_CANONICAL_DIR, s));
   return [{ name: 'skills', type: 'directory', paths: selectedPaths }];
+}
+
+// --- CLAUDE.md UPSTREAM-DRIFT ADVISORY (afterApply hook) ---
+//
+// Root `CLAUDE.md` is a per-project file: heavily customized (project identity,
+// env URLs, Jira fields, custom rules) and deliberately NOT a synced component —
+// `bun up` never overwrites it. But the boilerplate's OWN `CLAUDE.md` keeps
+// evolving (doctrine, behavioral rules, workflow conventions), so a downstream
+// project would silently miss those improvements.
+//
+// This advisory NEVER edits `CLAUDE.md`. It prints a copy-paste prompt the user
+// hands to their AI, which fetches the canonical `CLAUDE.md` and SEMANTICALLY
+// merges the upstream improvements while preserving every project-specific value.
+//
+// Noise control: the local file ALWAYS differs from the generic upstream, so
+// "they differ" alone would fire every run. Instead we fire ONLY when the
+// upstream `CLAUDE.md` actually CHANGED since the last advice, tracked by a
+// content hash in `.template/claude-md.upstream.sha`. One nudge per upstream
+// change — never on dry-run (the whole afterApply hook is skipped there).
+
+const CLAUDE_MD_SHA_MARKER = '.template/claude-md.upstream.sha';
+
+/** Whitespace-insensitive normalization for the "already identical" short-circuit. */
+function normalizeForCompare(s: string): string {
+  return s.replace(/\r\n/g, '\n').replace(/[ \t]+$/gm, '').replace(/\n+$/g, '\n');
+}
+
+/**
+ * Build the `afterApply` hook that detects upstream `CLAUDE.md` improvements and
+ * emits a copy-paste AI prompt to merge them into the local (per-project) file.
+ * Mirrors makeEnvDriftHook — captures `tempDir` (upstream clone) and `templateRepo`
+ * (for the canonical raw URL); never mutates the consumer `CLAUDE.md`.
+ */
+function makeClaudeMdDriftHook(
+  tempDir: string,
+  templateRepo: string,
+  sink: ReportSink,
+): (summary: RunSummary) => Promise<void> {
+  return async (_summary: RunSummary): Promise<void> => {
+    const upstreamPath = path.join(tempDir, 'CLAUDE.md');
+    const localPath = path.join(process.cwd(), 'CLAUDE.md');
+    // Need BOTH the boilerplate's canonical copy and the project's own.
+    if (!fs.existsSync(upstreamPath) || !fs.existsSync(localPath)) { return; }
+
+    let upstreamContent: string;
+    let localContent: string;
+    try {
+      upstreamContent = fs.readFileSync(upstreamPath, 'utf8');
+      localContent = fs.readFileSync(localPath, 'utf8');
+    }
+    catch { return; }
+
+    // Project tracks the boilerplate verbatim → nothing to suggest.
+    if (normalizeForCompare(upstreamContent) === normalizeForCompare(localContent)) { return; }
+
+    // Fire only when the UPSTREAM file changed since our last advice.
+    const upstreamSha = crypto.createHash('sha256').update(upstreamContent, 'utf8').digest('hex');
+    const markerPath = path.join(process.cwd(), CLAUDE_MD_SHA_MARKER);
+    let lastSha = '';
+    try {
+      if (fs.existsSync(markerPath)) { lastSha = fs.readFileSync(markerPath, 'utf8').trim(); }
+    }
+    catch { /* unreadable marker — treat as first advice */ }
+
+    if (lastSha === upstreamSha) { return; } // no NEW upstream change since last nudge
+
+    // Persist the marker FIRST so this is one nudge per upstream change, even if the
+    // user ignores it (non-fatal if the write fails — worst case we advise again).
+    try {
+      fs.mkdirSync(path.dirname(markerPath), { recursive: true });
+      fs.writeFileSync(markerPath, `${upstreamSha}\n`);
+    }
+    catch { /* non-fatal */ }
+
+    const rawUrl = `https://raw.githubusercontent.com/${templateRepo}/main/CLAUDE.md`;
+    const firstAdvice = lastSha === '';
+
+    sink.warn(firstAdvice
+      ? 'El `CLAUDE.md` del boilerplate trae mejoras que tu `CLAUDE.md` local podría no tener (es un archivo per-proyecto: el updater nunca lo sobrescribe).'
+      : 'El `CLAUDE.md` del boilerplate cambió desde la última vez. Tu `CLAUDE.md` local no se actualiza solo (es per-proyecto).');
+    sink.step('No tocamos tu `CLAUDE.md`. Copia el prompt de abajo y pégalo en tu IA para traer SOLO las mejoras, preservando lo específico de tu proyecto:');
+
+    const prompt = [
+      'Sync the local ./CLAUDE.md with the upstream boilerplate, pulling ONLY the improvements.',
+      '',
+      `1. Fetch the canonical boilerplate CLAUDE.md: ${rawUrl}`,
+      `   (use your web-fetch tool, or run: curl -fsSL ${rawUrl})`,
+      '2. Diff it against the local ./CLAUDE.md.',
+      '3. Merge in ONLY the upstream improvements: new or updated rules, doctrine, behavioral guidance, workflow conventions, and sections this project lacks.',
+      '4. PRESERVE every project-specific value verbatim — project identity, env URLs, Jira keys/fields, credential references, and any custom rule or section this project added. Never replace a local customization with a generic boilerplate placeholder.',
+      '5. On any genuine conflict (same rule, divergent intent), surface it for my decision instead of silently overwriting. Keep the rule numbering coherent after merging.',
+      '6. Show me a concise before/after diff of what you changed and why BEFORE writing the file.',
+    ].join('\n');
+
+    // Plain stdout (no log-prefix bullets) so the block copy-pastes cleanly.
+    process.stdout.write(`\n${pc.dim('────────  COPY PROMPT BELOW  ────────')}\n${prompt}\n${pc.dim('────────  COPY PROMPT ABOVE  ────────')}\n\n`);
+  };
 }
 
 // --- SINK ---
@@ -623,7 +982,11 @@ async function main(): Promise<void> {
         : composeHooks(
             sink,
             makeSkillsRegistryHook(sink),
-            makeEnvDriftHook(TEMP_DIR, sink, parsed.auto),
+            makeEnvDriftHook(TEMP_DIR, sink, parsed.auto || parsed.force),
+            makeGitStrategyUpsertHook(TEMP_DIR, sink, parsed.auto || parsed.force),
+            makeYamlBackfillHook(QA_EPICS_BACKFILL, TEMP_DIR, sink, parsed.auto || parsed.force),
+            makeYamlBackfillHook(QA_ASSIGNEE_BACKFILL, TEMP_DIR, sink, parsed.auto || parsed.force),
+            makeClaudeMdDriftHook(TEMP_DIR, TEMPLATE_REPO, sink),
           ),
     },
   };
@@ -643,16 +1006,21 @@ async function main(): Promise<void> {
     `Con error:    ${summary.failed.length}`,
     `Avanzados:    ${summary.componentsAdvanced.join(', ') || '(ninguno)'}`,
     `Retenidos:    ${summary.componentsHeldBack.join(', ') || '(ninguno)'}`,
+    'Git: si tu `git_strategy` está sin definir o es heredado, ejecuta "set up our git strategy" en Claude (git-flow-master).',
   ])}\n`);
 
   tui.outro(parsed.dryRun ? 'Dry-run completado.' : 'Sincronizacion completada.');
 }
 
-main().catch((err: unknown) => {
-  if (err instanceof Error && err.name === 'ExitPromptError') {
-    tui.cancel('Aborted by user.');
-    process.exit(130);
-  }
-  tui.log.error(err instanceof Error ? err.message : String(err));
-  process.exit(1);
-});
+// Guard so the pure helpers above (extractIndentedYamlBlock,
+// insertBlockAtEndOfSection) can be imported by tests without running the CLI.
+if ((import.meta as { main?: boolean }).main) {
+  main().catch((err: unknown) => {
+    if (err instanceof Error && err.name === 'ExitPromptError') {
+      tui.cancel('Aborted by user.');
+      process.exit(130);
+    }
+    tui.log.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  });
+}

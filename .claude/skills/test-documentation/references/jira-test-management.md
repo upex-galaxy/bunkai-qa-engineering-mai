@@ -34,7 +34,7 @@ Decision rule:
 - **Xray present** -> use Jira + Xray. The extra issue types (Test Plan, Test Set, Test Execution) are worth the complexity.
 - **Xray absent** -> use Jira Native. Build a custom `Test` issue type and treat Description as the source of truth.
 
-Once chosen, stay consistent: TC prefix depends on mode (see §5).
+Once chosen, stay consistent. The TC prefix is always the User Story key regardless of mode (see §5).
 
 ---
 
@@ -52,7 +52,7 @@ Test (TEST-456)
 Regression Epic (EPIC-001 — "Test Repository")
 ```
 
-ATP and ATR live as additional custom issue types or as documents linked to the story. In this skill's convention, ATP = `Test Plan: {{PROJECT_KEY}}-{n}` and ATR = `Test Results: {{PROJECT_KEY}}-{n}` are stored as Jira issues of a generic type (Task or a custom "Test Plan" / "Test Results" type). Linking order: (1) create ATP and link to US; (2) create ATR and link to US; (3) update ATP to link to ATR; (4) for each TC, link to US + ATP + ATR + AC.
+**Items over fields (by excellence)**: ATP and ATR are real Jira issues even without Xray — a `Test Plan` issue titled `ATP: {STORY-KEY}: {story title}` (parented to **QA Master Test Plan**) and a `Test Execution` issue titled `ATR: {STORY-KEY}: Story Testing` (parented to **QA Test Artifacts**). These are native Jira work types; create them as such. ATP/ATR as Story custom fields (or a Task standing in) is a **degraded fallback ONLY**, used when those work types are unavailable in the instance. Linking order: (1) create ATP and link to US; (2) create ATR and link to US; (3) update ATP to link to ATR; (4) for each TC, link to US + ATP + ATR + AC.
 
 ### Jira + Xray
 
@@ -62,25 +62,31 @@ Five extra issue types available:
 |------------|---------|--------------|
 | **Test** | Individual test case (Manual, Cucumber, Generic). | Child of Regression Epic; linked to User Story. |
 | **Test Plan** | Groups Tests for a release / sprint. Contains Tests. | Planning-level container. |
-| **Test Set** | Groups Tests by criteria (smoke, regression, domain). | Re-usable grouping; `TS_ID` becomes TC prefix. |
+| **Test Set** | Groups Tests by criteria (smoke, regression, domain). | Re-usable grouping; membership is a link, NEVER the TC prefix (prefix is always `{US_ID}`). |
 | **Test Execution** | One execution instance. Generates Test Runs. | Executes a Test Plan or ad-hoc set of Tests. |
 | **Precondition** | Reusable prerequisite for Tests. | Referenced by Tests that share setup. |
 
-Typical hierarchy:
+Typical hierarchy (parents are the QA-process Epics — Plans under **QA Master Test Plan**; Executions / Sets / Preconditions under **QA Test Artifacts**; Tests under **QA Test Repository**):
 
 ```
-Regression Epic
+QA Master Test Plan (Epic)
     |
-    +-- Test Plan: PROJ Sprint 50
-    |       |
-    |       +-- Test Set: Sanity: PROJ-101: Allow credit card payment
-    |       |       +-- Test (TC1, TC2, ...)
-    |       |
-    |       +-- Test Set: Regression: Checkout v2
-    |               +-- Test (TC3, TC4, ...)
+    +-- Test Plan: STP: Sprint#50: Regression           (sprint plan)
+    +-- Test Plan: ATP: PROJ-101: Pay with credit card  (story plan)
+            |
+            +-- (Test Set / Tests grouped via links)
+
+QA Test Artifacts (Epic)
     |
-    +-- Test Execution: Sanity: PROJ-101
+    +-- Test Set: TS: PROJ-101: Validate credit card payment
+    |       +-- Test (TC1, TC2, ...)        (membership = link, prefix stays {US_ID})
+    +-- Test Set: TS: Checkout: Validate checkout v2
+    |       +-- Test (TC3, TC4, ...)
+    +-- Test Execution: ATR: PROJ-101: Story Testing
             +-- Test Run per Test (PASS / FAIL / TODO)
+
+QA Test Repository (Epic)
+    +-- Test (TC1, TC2, TC3, TC4, ...)       (the permanent test repository)
 ```
 
 ---
@@ -124,7 +130,7 @@ Same concept, different storage. Use this when translating a TC design into actu
 | Priority | `Priority` field | `Priority` field |
 | Labels | `Labels` field | `Labels` field |
 | Components | `Components` field | `Components` field |
-| Trace to User Story | Linked Issue "is tested by" | Linked Issue "is tested by" |
+| Trace to User Story | Linked Issue "is tested by" (TC → Story, direct) | INDIRECT — TC "is designed by" ATP + "is executed by" ATR; the ATP/ATR carry "is tested by" to the Story. No direct TC → Story link. |
 | Execution result | `Test Status` custom field | Xray `Test Run` inside a Test Execution |
 
 Xray additionally exposes:
@@ -135,31 +141,37 @@ Xray additionally exposes:
 
 ---
 
-## 5. Naming — prefix depends on mode
+## 5. Naming — prefix is always the User Story key
 
-The TC naming convention is the same in both modes — only the prefix differs.
+The TC naming convention is identical in every modality — the prefix is **ALWAYS the User Story key** (`{US_ID}`), never the Test Set ID.
 
 ```
-{PREFIX}: TC#: Validate <CORE> <CONDITIONAL>
+{US_ID}: TC#: should <expected outcome> [<connector> <condition>] [given <precondition>]
 ```
 
-| Mode | `PREFIX` |
+| Modality | `PREFIX` |
 |------|----------|
 | **Jira Native** | User Story ID (`PROJ-101`) |
-| **Jira + Xray with Test Sets** | Test Set ID (`PROJ-150`) |
+| **Jira + Xray with Test Sets** | User Story ID (`PROJ-101`) — Test Set membership is a link, not a prefix |
 | **Jira + Xray without Test Sets** | User Story ID (`PROJ-101`) |
 
-Pick one and stay consistent across the whole project. Mixing prefixes makes JQL searches unreliable.
+The prefix never changes with mode. Test Set association is expressed via an issue **link** ("is part of" the Test Set), NEVER in the TC title — so JQL by Story key stays reliable across the whole project.
 
-Related naming:
+Related naming — the unified planning-ladder grammar `{ACRONYM}: {scope-id}: {descriptor}` (full table: `tms-conventions.md` §3):
 
-| Entity | Pattern | Example |
-|--------|---------|---------|
-| Test Plan | `QA: TestPlan: <Strategy> <Version>` | `QA: TestPlan: Regression v2.1` |
-| Test Set | `<Strategy>: <ID>: <Summary>` | `Sanity: PROJ-101: Allow credit card payment` |
-| Test Execution | `<Strategy>: <ID>: <Summary>` | `Regression: TP-50: Sprint 50 Regression` |
-| ReTesting (bug fix) | `ReTest: <BUG_ID>: <Summary>` | `ReTest: PROJ-202: Wrong error on invalid password` |
-| Precondition | `<Epic>: <Component>: PRC: For <Action>` | `Checkout: Payment: PRC: For credit card flow` |
+| Entity | Jira work type | Pattern | Example |
+|--------|----------------|---------|---------|
+| Story Test Plan (ATP) | Test Plan | `ATP: {STORY-KEY}: {story title}` | `ATP: PROJ-101: Pay with credit card` |
+| Story Test Execution (ATR) | Test Execution | `ATR: {STORY-KEY}: Story Testing` | `ATR: PROJ-101: Story Testing` |
+| Feature Test Plan (FTP) | Test Plan | `FTP: {EPIC-KEY}: {feature}` | `FTP: PROJ-42: Checkout & Payments` |
+| Feature Test Results (FTR) | Test Execution | `FTR: {EPIC-KEY}: Feature Testing — {feature}{ · run N}` | `FTR: PROJ-42: Feature Testing — Checkout · run 2` |
+| Sprint Test Plan (STP) | Test Plan | `STP: Sprint#{N}: Regression` | `STP: Sprint#50: Regression` |
+| Sprint Test Results (STR) | Test Execution | `STR: Sprint#{N}: Regression Testing` | `STR: Sprint#50: Regression Testing` |
+| Test Set | Test Set | `TS: {EPIC-KEY\|module}: Validate {feature}` | `TS: PROJ-101: Validate credit card payment` |
+| ReTesting (bug fix) | Test Execution | `ReTest: {BUG-KEY}: {summary}` | `ReTest: PROJ-202: Wrong error on invalid password` |
+| Precondition | Precondition | `PRC: {COMPONENT}: {required state}` | `PRC: Payment: Authenticated user with a saved card` |
+
+> **Precondition**: the **title states the required state**; the **content holds the setup steps** — kept distinct.
 
 ---
 
@@ -233,7 +245,7 @@ The Description is load-bearing in Jira Native mode and still recommended in Xra
 ### Gherkin (if Candidate)
 ```gherkin
 @{priority} @regression @automation-candidate @{US_ID}
-Scenario Outline: Validate <core> <conditional>
+Scenario Outline: should <outcome> <connector> <condition>
   Given <entity> exists with <identifier>
   When the user <main_action>
   Then <assertion 1>
@@ -279,6 +291,8 @@ Notes:
 ---
 
 ## 8. Creating a TC — pseudocode by mode
+
+> **Parenting + components (binding — `../../agentic-qa-core/references/defect-management-doctrine.md`).** In **both** modalities every created `Test` (TC) parents to the **QA Test Repository process epic** — found-or-created by `qa.qa_epics.test_repository_epic.name` (**"QA Test Repository"**), never a product/dev epic, never unparented (Part 4). Its `components` field is **mandatory** and names the affected product module (Part 3). Per the three-axis model the **parent says only "which QA bucket"**, while `components` carries the product area and the **Story coverage travels on the issue link** ("is tested by" under jira-native; ATP/ATR aggregation under jira-xray) — never on the parent. The `epic:` / `REGRESSION_EPIC_KEY` referenced in the blocks below resolves to this QA Test Repository epic.
 
 ### Jira Native (Manual or Gherkin)
 
@@ -328,10 +342,16 @@ Notes:
   issue: {TEST_KEY}
   description: {full Description template from §7}
 
+# Coverage edges: ATP designs TC, ATR executes TC. The Test is NOT linked to the
+# Story directly — coverage aggregates to the Story through the ATP/ATR.
 [ISSUE_TRACKER_TOOL] Link Issues:
-  from: {TEST_KEY}
-  to:   {STORY_KEY}
-  linkType: {{jira.link_types.test.name}}   # Story is tested by Test
+  from: {ATP_KEY}
+  to:   {TEST_KEY}
+  linkType: {{jira.link_types.test_design.name}}    # ATP designs TC / TC is designed by ATP
+[ISSUE_TRACKER_TOOL] Link Issues:
+  from: {ATR_KEY}
+  to:   {TEST_KEY}
+  linkType: {{jira.link_types.test_execute.name}}   # ATR executes TC / TC is executed by ATR
 
 # Test ↔ Test Set membership is NOT a Jira issuelink — do NOT create it via
 # [ISSUE_TRACKER_TOOL] link create. It is Xray-internal state managed via the
@@ -345,7 +365,7 @@ Notes:
   transition: start design
 ```
 
-> Resolve the `test` link type by slug only and verify direction after creation — see `agentic-qa-core/references/traceability-linking.md` (§2 slug resolution, §4 directionality, §9 Test Set caveat: membership goes through `/xray-cli`, never `acli link create`).
+> Resolve the `test_design` / `test_execute` link types by slug only and verify direction after creation — see `agentic-qa-core/references/traceability-linking.md` (§2 slug resolution, §3 catalog, §4 directionality, §9 Test Set caveat). **Confirmed: the Xray-internal attach (`plan add-tests` / `exec add-tests`) creates NO Jira links** — the `designs`/`executes` Jira edges MUST be created explicitly via `[ISSUE_TRACKER_TOOL]` (`/acli`), SEPARATE from the Xray-internal membership. Membership goes through `/xray-cli`, never `acli link create`; the Jira coverage links go through `/acli`, never `/xray-cli`. Do NOT link the Test to the Story directly under Modality jira-xray.
 
 ### Stage-4 promote + enrich — tool resolution map (Modality jira-xray)
 
@@ -370,24 +390,42 @@ When `/test-documentation` Stage 4 promotes a sprint Xray Test into regression, 
   project: {{PROJECT_KEY}}
   type: Manual
   title: {per TC naming convention}
-  steps:
-    - action: {step 1}
-      data:   {step 1 data}
-      result: {expected step 1}
-    - action: {step 2}
-      ...
+  # NO inline steps here — Xray Cloud drops steps passed on create. Create the
+  # Test bare, then add each step in a follow-up call.
+
+[TMS_TOOL] Add Step:           # one call per step (Xray Cloud only registers steps added post-create)
+  test:   {TEST_KEY}
+  action: {step 1}
+  data:   {step 1 data}
+  result: {expected step 1}
+# ...repeat [TMS_TOOL] Add Step for each remaining step...
 
 [ISSUE_TRACKER_TOOL] Update Issue:
   issue: {TEST_KEY}
   description: {full Description template from §7}
+
+# Coverage edges: ATP designs TC, ATR executes TC. The Test is NOT linked to the
+# Story directly. The Xray-internal attach creates NO Jira links — these designs/
+# executes edges are SEPARATE and created explicitly here via /acli. (Slug +
+# direction: traceability-linking.md §3/§4/§9.)
+[ISSUE_TRACKER_TOOL] Link Issues:
+  from: {ATP_KEY}
+  to:   {TEST_KEY}
+  linkType: {{jira.link_types.test_design.name}}    # ATP designs TC
+[ISSUE_TRACKER_TOOL] Link Issues:
+  from: {ATR_KEY}
+  to:   {TEST_KEY}
+  linkType: {{jira.link_types.test_execute.name}}   # ATR executes TC
 ```
 
-The two-call pattern (Xray + Update Issue) is mandatory in Xray mode. Skipping the second call leaves a TC with no readable documentation in Jira — only the bare Xray Steps field.
+The two-call pattern (Xray + Update Issue) is mandatory in Xray mode. Skipping the Update Issue call leaves a TC with no readable documentation in Jira — only the bare Xray Steps field. Manual-step gotcha: Xray Cloud drops any steps passed on `Create Test`; always create the Test without steps, then add each step via `[TMS_TOOL] Add Step` (one call per step).
 
 ---
 
-## 9. Test Plan / Test Set / Test Execution — Xray only
+## 9. Test Plan / Test Set / Test Execution
 
+> **Items over fields**: `Test Plan`, `Test Set`, and `Test Execution` are native Jira work types — create them as real issues in both modalities (Xray only adds the run/coverage engine and result import on top). Titles follow the unified ladder grammar (§5). Parent Plans to **QA Master Test Plan**; parent Executions / Sets / Preconditions to **QA Test Artifacts**.
+>
 > **Prerequisite**: Load `/xray-cli` and `/acli` skills before executing the commands in this section. `Test Plan` and `Test Set` are created via `[ISSUE_TRACKER_TOOL]` (acli); `Test Execution` result imports use `[TMS_TOOL]` (xray-cli).
 
 ### Test Plan
@@ -398,8 +436,9 @@ Groups Tests for a release or sprint. One per release cadence.
 [ISSUE_TRACKER_TOOL] Create Issue:
   project: {{PROJECT_KEY}}
   issueType: Test Plan
-  summary: QA: TestPlan: Regression v2.1
+  summary: STP: Sprint#50: Regression
   labels: [regression, {release}]
+  # Parent Epic: QA Master Test Plan
 
 [ISSUE_TRACKER_TOOL] Update Issue:
   issue: {TP_KEY}
@@ -409,14 +448,15 @@ Groups Tests for a release or sprint. One per release cadence.
 
 ### Test Set
 
-Groups Tests by domain / strategy. Reusable across sprints. TC prefix can be the Test Set ID.
+Groups Tests by domain / strategy. Reusable across sprints. The TC title prefix is **ALWAYS `{US_ID}`** (the User Story key) regardless of Test Set membership (see §5) — Test Set membership is expressed via an issue **link** ("is part of" the Test Set), NEVER the TC prefix.
 
 ```
 [ISSUE_TRACKER_TOOL] Create Issue:
   project: {{PROJECT_KEY}}
   issueType: Test Set
-  summary: Sanity: {{PROJECT_KEY}}-101: Allow credit card payment
+  summary: TS: {{PROJECT_KEY}}-101: Validate credit card payment
   labels: [regression, sanity]
+  # Parent Epic: QA Test Artifacts
 ```
 
 ### Test Execution
@@ -426,8 +466,9 @@ One per execution run. Holds Test Runs with PASS / FAIL / TODO per Test.
 ```
 [TMS_TOOL] Create Execution:
   project: {{PROJECT_KEY}}
-  title: Sanity: {{PROJECT_KEY}}-101: <date>
+  title: ATR: {{PROJECT_KEY}}-101: Story Testing
   tests: [{TEST_KEY_1}, ...]
+  # Parent Epic: QA Test Artifacts
 
 [TMS_TOOL] Import Results:
   format: junit      # or cucumber, xray-json
@@ -498,7 +539,7 @@ outcome: Candidate
 labels: [regression, automation-candidate, e2e, high]
 ---
 
-# PROJ-456: TC1: Validate successful login with valid credentials
+# PROJ-456: TC1: should grant access when credentials are valid
 
 ## Preconditions
 - <precondition 1>
@@ -545,7 +586,7 @@ The frontmatter is machine-readable. A later `test-automation` run greps for `ou
 
 8. **Gherkin rendering**: Jira's rich-text editor mangles Gherkin indentation when pasted without a code block. Always wrap Gherkin in triple-backticks (``` ```gherkin ``` ```) inside the Description, or use Xray's dedicated Gherkin field.
 
-9. **Character limits**: Summary is capped at 255 chars. Long TC titles ("PROJ-101: TC14: Validate successful checkout when user has multiple cards and applies stacked discounts...") truncate silently. Keep CORE + CONDITIONAL tight.
+9. **Character limits**: Summary is capped at 255 chars. Long TC titles ("PROJ-101: TC14: should complete checkout when user has multiple cards and applies stacked discounts...") truncate silently. Keep CORE + CONDITIONAL tight.
 
 10. **Xray Test Type cannot change**: once a Test is created as `Manual`, converting it to `Cucumber` typically requires deletion and recreation. Pick the type correctly at creation time.
 
@@ -557,8 +598,8 @@ The frontmatter is machine-readable. A later `test-automation` run greps for `ou
 
 ## 13. Completeness checklist (per TC before moving to Ready)
 
-- [ ] Summary follows `{PREFIX}: TC#: Validate <CORE> <CONDITIONAL>` — no anti-patterns
-- [ ] Linked to User Story via "is tested by"
+- [ ] Summary follows `{US_ID}: TC#: should <expected outcome> [<connector> <condition>] [given <precondition>]` — no anti-patterns
+- [ ] Traced to the User Story: Modality jira-xray → "is designed by" ATP + "is executed by" ATR (NO direct TC → Story link); Modality jira-native → "is tested by" the Story directly
 - [ ] Linked to Regression Epic (Epic Link)
 - [ ] Priority set
 - [ ] Labels include scope (regression/smoke/e2e/integration) and automation intent (automation-candidate or manual-only)
@@ -580,6 +621,7 @@ The frontmatter is machine-readable. A later `test-automation` run greps for `ou
 - **Hardcoded data**: UUIDs, emails, passwords in Gherkin. Use `{variable}` + Variables table.
 - **Splitting assertions into separate TCs**: "TC1: check panel A appears", "TC2: check panel B appears", "TC3: check panel C appears" where precondition+action is identical. These are one TC with three assertions.
 - **Cross-cutting as TCs**: "Mobile responsive", "XSS prevention", "Performance", "Accessibility" as standalone TCs. These are validated inside other TCs or in an app-level suite.
-- **Creating TCs before ATP/ATR exist**: leaves orphaned references. Always create ATP and ATR first, link them to the US, link ATP to ATR, and only then create each TC with links to US + ATP + ATR + AC.
+- **Creating TCs before ATP/ATR exist**: leaves orphaned references. Always create ATP and ATR first, link them to the US (`is tested by`), link ATP to ATR, and only then create each TC with links to ATP (`is designed by`) + ATR (`is executed by`) + AC. Modality jira-native only: link the TC to the US (`is tested by`) directly, since there are no ATP/ATR issues.
+- **Linking every TC directly to the Story (Modality jira-xray)**: floods the Story panel with noise. Under jira-xray the Story is linked ONLY to its ATP and ATR; TCs aggregate to the Story THROUGH the ATP (`designs`) and ATR (`executes`). Never create a direct Story↔TC link in jira-xray.
 - **Summary > 255 chars**: truncates silently. Shorten CONDITIONAL if needed.
 - **Manual steps in Xray with no Description**: creating Xray Manual Tests but skipping `[ISSUE_TRACKER_TOOL] Update Issue` leaves a TC with minimal context. Always populate the full Description template.

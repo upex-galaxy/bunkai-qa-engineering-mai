@@ -135,3 +135,7 @@ dbhub.local.toml
 # matches it, but this guards against future blanket *.lock or skills.* rules.
 !skills.lock.json
 !**/skills.lock.json
+
+# ===== Synced from boilerplate v7.0 =====
+# ----- 2026-06-30 (sync) -----
+.template/claude-md.upstream.sha

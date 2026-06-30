@@ -145,7 +145,7 @@ Error genérico "Payment failed" sin más detalle
 **Screenshots:** [adjuntos]
 ```
 
-**Herramientas:** `[AUTOMATION_TOOL]` (playwright-cli) para screenshots/trazas, `[API_TOOL]` para probar endpoints, `[DB_TOOL]` para validar data integrity.
+**Herramientas:** `[AUTOMATION_TOOL]` (playwright-cli) para screenshots/trazas, `[API_TOOL]` para endpoints (schema vía OpenAPI MCP solo-lectura, ejecución vía curl + `bun run api:login`), `[DB_TOOL]` para validar data integrity.
 
 ---
 
@@ -155,7 +155,7 @@ Cerrar el ciclo con un reporte formal y traceabilidad completa.
 
 **Qué hace el skill:**
 
-1. **Completa el Acceptance Test Report (ATR)** en el TMS con resultados por TC.
+1. **Completa el Acceptance Test Results (ATR)** en el TMS con resultados por TC.
 2. **Emite el QA comment** en la ticket (Template PASSED / FAILED) vía `[ISSUE_TRACKER_TOOL]`.
 3. **Transiciona el ticket** (`Tested`, `Ready for Release`, etc.).
 4. El ATR se **materializa desde Jira** vía el sync como `acceptance-test-results.md` (cache read-only; nunca se escribe a mano un mirror local).
