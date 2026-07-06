@@ -99,7 +99,7 @@ This adds password as the ***third*** sign-in method on the login screen, alongs
 ## Metadata
 
 - **Created:** 6/21/2026
-- **Updated:** 6/25/2026
+- **Updated:** 6/30/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** auth, mvp, shift-left-reviewed, wave-1

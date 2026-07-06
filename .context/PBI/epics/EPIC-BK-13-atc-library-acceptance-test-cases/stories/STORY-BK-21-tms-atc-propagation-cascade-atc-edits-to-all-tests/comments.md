@@ -165,5 +165,83 @@ Recommendation: keep [https://jira.upexgalaxy.com/browse/BK-21#icft=BK-21](https
 
 ---
 
+### Automation for Jira - 6/25/2026, 1:49:05 AM
+
+✅ Pull Request is successfully MERGED. Task is Done.
+
+---
+
+### Ely - 6/25/2026, 1:51:11 AM
+
+## Ready for QA — BK-21 ATC Propagation
+
+@@Ramiro Majdalani — merged to ***staging**** and deployed. Migration `0035` applied to the shared Supabase project. The 10 shift-left contract questions are resolved (see ****ADR-0009***).
+
+***PR******:**** https://github.com/upex-galaxy/upex-bunkai-tms/pull/57 · ****Branch******:**** `feature/BK-21-atc-propagation` · ****Staging******:*** https://staging-upexbunkai.vercel.app/
+
+### Contract resolution (your shift-left questions)
+
+| # | Question | Decision |
+| --- | --- | --- |
+| 1 | "Immediate" propagation | Reference-based, visible on the Test's next read |
+| 2 | If-Match required? | Optional but honored (`X-If-Match`; 409 on mismatch; absent = last-write-wins) |
+| 3 | Response shape | `{ atc, version, affected*test*count }`; `affected*test*ids` ride the `atc.updated` event |
+| 4 | `user*story*id` mutable? | No — anchors immutable; only AC ids re-bindable |
+| 5 | Layer-policy rules | No gate — `tests` has no `layer_policy` column; deferred |
+| 6 | Archived Tests counted? | N/A — Tests have no archive state |
+| 7 | Double-reference | Counted once — `COUNT(DISTINCT test_id)` |
+| 8 | Archived ATC edit | Rejected → 404 |
+| 9 | No-op version bump | Empty body `{}` = no-op (count 0); non-empty identical body bumps |
+| 10 | Event emission failure | Emitted in-transaction — cannot fail independently |
+
+### Test focus (per your ATP)
+
+- API: `PATCH /atcs/{id}` returns `affected*test*count` for 0 / 1 / many Tests (BK21-T03/T06/T07).
+- API: stale `X-If-Match` → 409 with `current_version` (BK21-T04).
+- DB/Integration: edit an ATC → referencing Tests show the change on next read; ***no ****`test_steps`**** row modified*** (BK21-T01/T02).
+- Event: `atc.updated` payload carries real `affected*test*ids` (distinct) (BK21-T14).
+- Integration: historical Runs keep their snapshots after an edit (BK21-T15) — unchanged by design (run*atcs/run*steps).
+- UI: editor save confirmation reports "N Tests updated" (BK21-T17).
+- Contract: OpenAPI now documents `X-If-Match`, the 200 shape, 403/404/409/422 (BK21-T16).
+
+> Note: per the deploy decision, layer-policy (BK21-T11) is out of scope — no policy exists to enforce. Verify it as "layer freely editable, no 422".
+
+---
+
+### Ramiro Majdalani - 6/27/2026, 3:00:52 PM
+
+## QA Decision Needed - BK-21
+
+### Passed
+
+- `PATCH /api/v1/atcs/{id}` with `X-If-Match: 1` returned 200 with `{ atc, version, affected*test*count }`.
+- Version incremented from 1 to 2.
+- `affected*test*count = 3` for three distinct Tests chaining the ATC.
+- Next `GET /api/v1/tests/{id}` showed the edited ATC step, proving live reference propagation.
+- DB confirmed three `test*steps` rows referencing the same `atc*id` and `count(distinct test_id) = 3`.
+- `activity_log` `atc.updated` payload included the three affected Test ids.
+- Stale `X-If-Match` returned 409 `version_conflict`; malformed header returned 400; empty body was a no-op with count 0.
+
+### Open Gate
+
+- BK21-T15 historical Run snapshot could not be validated.
+- `POST /api/v1/runs` returns 422: `No active workspace could be resolved for this request` for the configured Bearer caller with `run:execute` scope.
+- UI affected-count confirmation still needs final browser validation; API count works.
+
+### Decision Needed
+
+Should BK21-T15 historical Run snapshot preservation be mandatory for BK-21 QA approval, or can it be deferred / accepted as a separate follow-up?
+
+### QA Recommendation
+
+If historical Run snapshot preservation is part of BK-21 acceptance, keep BK-21 in QA and file/block with a bug. If PO/Dev accepts it as deferred, BK-21 can move forward as `PASS WITH GAPS` after the UI affected-count confirmation is accepted or validated.
+
+### Local Evidence
+
+- Readable summary: `.context/PBI/epics/EPIC-BK-13-atc-library-acceptance-test-cases/stories/STORY-BK-21-tms-atc-propagation-cascade-atc-edits-to-all-tests/sprint-testing-readable-summary-2026-06-27.md`
+- Detailed execution: `.context/PBI/epics/EPIC-BK-13-atc-library-acceptance-test-cases/stories/STORY-BK-21-tms-atc-propagation-cascade-atc-edits-to-all-tests/stage-2-execution-2026-06-27.md`
+
+---
+
 
 _Synced from Jira by sync-jira-issues_

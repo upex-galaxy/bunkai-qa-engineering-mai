@@ -1,9 +1,9 @@
 # BUG: TMS-Workspace: API: POST /api/v1/me/active-workspace returns legacy fields {ok, active_workspace_id} alongside fix fields
 
 **Jira Key:** [BK-118](https://jira.upexgalaxy.com/browse/BK-118)
-**Priority:** Medium
+**Priority:** Low
 **Status:** Abierta
-**Components:** None
+**Components:** Account & Settings, Project & Module Hierarchy
 
 ---
 
@@ -72,7 +72,7 @@ Remove `ok: true` and `active*workspace*id` from the `jsonResponse` call.
 ## Metadata
 
 - **Created:** 6/11/2026
-- **Updated:** 6/12/2026
+- **Updated:** 6/26/2026
 - **Reporter:** Luis Eduardo Flores Villarroel
 - **Assignee:** Ely
 - **Labels:** tech-debt

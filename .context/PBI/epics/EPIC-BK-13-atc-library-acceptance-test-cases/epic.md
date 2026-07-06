@@ -78,7 +78,7 @@ Maps PRD EPIC-BK-004 (US 4.1..4.6) and SRS FR-010..FR-014.
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/10/2026
+- **Updated:** 7/3/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** mvp, wave-2

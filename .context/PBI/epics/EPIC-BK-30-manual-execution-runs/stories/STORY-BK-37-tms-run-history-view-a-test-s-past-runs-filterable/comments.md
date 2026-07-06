@@ -4,6 +4,11 @@
 
 ---
 
-_No comments_
+### Ely - 6/30/2026, 3:58:28 PM
+
+@@Andrés Daniel Cumare Morales Le asigno a @@Juan Ignacio Marmo porque no tenía ninguna asignada en el proyecto. Gracias Andres!
+
+---
+
 
 _Synced from Jira by sync-jira-issues_

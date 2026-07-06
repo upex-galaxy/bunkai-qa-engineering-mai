@@ -596,5 +596,203 @@ This story has been moved back to ***In Test*** so testing can resume. Please co
 
 ---
 
+### Ely - 6/20/2026, 8:05:42 PM
+
+> ***SUCCESS:**** ****QA Verdict******:****** PASSED (GO) — re-run 2026-06-20, staging, API+DB.***
+
+***Re-tested BK-18 end-to-end (modality jira-xray).*** 12/12 test cases PASSED. No open defects.
+
+***Blocking defect BK-96 — verified FIXED end-to-end.*** This closes the gap left by the prior code-review-only retest. The fix moved the optimistic-lock token to a custom `X-If-Match` header (PR #30, commit `421a917`): `X-If-Match` matching → 200 + version bump + cascade replace; stale → 409 conflict; absent → 200. Legacy `If-Match` still returns 412 at the Vercel edge (documented limitation — `X-If-Match` is the contract).
+
+***Coverage (refactored, parametrized — EP + BVA)******:***
+
+- ATP BK-94 updated; 12 Xray Tests BK-149…BK-160 created, executed under Test Execution BK-95 (all PASSED), shared Pre-Condition BK-161.
+- Anchoring moat (AC→US, module→subtree), auth/scope gate, step-position rule, request boundaries, transactional rollback (DB-verified), PATCH happy path + optimistic lock + 404 + empty-body no-op + immutable fields.
+
+***DB integrity******:*** transactional rollback verified zero-residue; created ATCs cleaned up (0/0/0).
+
+***Observation (non-blocking)******:*** `affected*test*ids` returns `null` where the MVP contract said `[]` — recommend dev confirm intended representation.
+
+***Recommendation******:*** ready for QA sign-off.
+
+---
+
+### Nahuel Gomez - 6/30/2026, 12:40:34 AM
+
+## Automated Tests — Implemented (2026-06-29)
+
+7 automated test cases written against staging, all passing.
+
+### Component
+
+`tests/components/api/AtcsApi.ts` — KATA component with 3 ATCs registered in `ApiFixture`.
+
+### Test Coverage (sandbox, waiting on BK-175/BK-177 for full project integration)
+
+| ATC ID | Scenario | Status |
+| --- | --- | --- |
+| BK-149 | POST happy create (valid payload, layer enum) | ✅ Passing |
+| BK-150 | POST auth gate (401 no auth, 401 invalid token) | ✅ Passing |
+| BK-153 | POST step validation (non-increasing positions → 422) | ✅ Passing |
+| BK-154 | POST boundary validation (title min/max length → 422) | ✅ Passing |
+| BK-156 | PATCH happy path with X-If-Match (full-replace, version bump) | ✅ Passing |
+
+### Quality Gates
+
+- `types:check` — ✅ Clean
+- `lint:check` — ✅ Clean  
+- `kata:manifest:check` — ✅ Up to date (5 components, 12 ATCs)
+- Test execution — ✅ 7/7 passing against live staging
+
+### Known Constraint
+
+Test file uses `.sandbox.ts` project (no auth-setup dependency) because staging auth endpoint is blocked by BK-177. When BK-175/BK-177 are resolved, file moves to `tests/integration/atc/` under the `integration` project.
+
+---
+
+### Nahuel Gomez - 6/30/2026, 8:33:12 PM
+
+## ATC API — Automation Complete (v2)
+
+All from EPIC BK-13 (ATC Library) — tests/integration/atc/atc-create-edit.sandbox.ts
+
+### Coverage (12/12 TCs)
+
+| TC | BK | Test | Status |
+| --- | --- | --- | --- |
+| TC01 | BK-149 | POST /atcs creates ATC 201 with steps/assertions/slug/version 1 | ✅ Automated |
+| TC01 | BK-149 | POST /atcs all layer values (UI/API/Unit) | ✅ Automated |
+| TC02 | BK-150 | POST /atcs unauthenticated → 401 | ✅ Automated |
+| TC02 | BK-150 | POST /atcs invalid token → 401 | ✅ Automated |
+| TC02 | BK-150 | POST /atcs missing atc:write scope → 403 | ⏳ fixme — needs STAGING*USER*READONLY_PAT |
+| TC03 | BK-151 | AC outside user*story → 422 ac*outside*user*story | ✅ Automated |
+| TC04 | BK-152 | Module outside subtree → 404/not_found (non-existent UUID) | ✅ Automated |
+| TC05 | BK-153 | Non-increasing step positions → 422 steps*position*invalid | ✅ Automated |
+| TC06 | BK-154 | Title too short/long, zero steps, too many tags, invalid layer → 422 | ✅ Automated |
+| TC07 | BK-155 | Non-existent user*story*id → 404/not_found (no partial write) | ✅ Automated |
+| TC08 | BK-156 | PATCH /atcs/{id} X-If-Match → version 2 | ✅ Automated |
+| TC08 | BK-156 | PATCH cascade-replaces children (BK-96 regression) | ✅ Automated |
+| TC09 | BK-157 | PATCH matching X-If-Match → 200 | ✅ Automated |
+| TC09 | BK-157 | PATCH stale X-If-Match → 409/conflict | ✅ Automated |
+| TC09 | BK-157 | PATCH absent X-If-Match → 200 | ✅ Automated |
+| TC10 | BK-158 | PATCH non-existent id → 404/not_found | ✅ Automated |
+| TC11 | BK-159 | PATCH identical payload → 200 (version bumps to 2) | ✅ Automated |
+| TC12 | BK-160 | PATCH keeps slug, user*story*id, module_id immutable | ✅ Automated |
+
+> ***⚠️*** Tests run as sandbox (`bun playwright test --project=sandbox`). Not yet promoted to `integration` project or added to CI regression suite. 403 test blocked on `STAGING*USER*READONLY_PAT` env var.
+
+---
+
+### Nahuel Gomez - 6/30/2026, 10:27:45 PM
+
+## Automation Complete — Combined Summary
+
+All tests pass in CI. Framework: Playwright + TypeScript + KATA, sandbox project (no auth dependency).
+
+### Reports
+
+| Report | URL |
+| --- | --- |
+| Allure (latest) | https://nelgoez.github.io/bunkai-qa-engineering/staging/sanity/ |
+
+### BK-166 — Auth email+password sign-in API (8 tests)
+
+CI run: https://github.com/nelgoez/bunkai-qa-engineering/actions/runs/28486452620
+
+| Scenario | Status |
+| --- | --- |
+| Sign in with valid credentials → 200 (user+session+PAT) | ✅ |
+| Sign in with wrong password → 401 | ✅ |
+| Sign in with non-existent email → 401 | ✅ |
+| Check email (existing) → {exists:true, confirmed:true} | ✅ |
+| Check email (unknown) → {exists:false} | ✅ |
+| GET /me with valid PAT → 200 | ✅ |
+| GET /me without auth → 401 | ✅ |
+| Sign-in PAT authenticates subsequent calls | ✅ |
+
+### BK-4 — Workspace CRUD (4 tests)
+
+CI run: https://github.com/nelgoez/bunkai-qa-engineering/actions/runs/28487034357
+
+| Scenario | Status |
+| --- | --- |
+| Create workspace with name+slug → 201 | ✅ |
+| Name < 3 chars → 422 | ✅ |
+| Reserved slug → 422 | ✅ |
+| Duplicate slug → 409 | ✅ |
+
+### BK-8 — Project CRUD (4 tests)
+
+| Scenario | Status |
+| --- | --- |
+| Create project in workspace → 201 | ✅ |
+| Name < 3 chars → 422 | ✅ |
+| Duplicate slug → 409 | ✅ |
+| Non-member → 403 | ✅ |
+
+### BK-18 — ATC API (17 tests + 1 fixme)
+
+Verified locally and in CI (sandbox project).
+
+| Coverage | Status |
+| --- | --- |
+| 12/12 TC outlines automated | ✅ |
+| 17 tests pass, 1 fixme (403 scope) | ✅ |
+
+### Known gaps
+
+- BK-150 403 scope test blocked on STAGING*USER*READONLY_PAT
+- Sandbox tests not promoted to integration project (blocked on BK-177: old /auth/login 404s)
+- Key discovery: /api/v1/auth/signin works — loginEndpoint config can be updated to fix this
+
+---
+
+### Nahuel Gomez - 6/30/2026, 11:14:38 PM
+
+## QA Automation Session — Complete Report (2026-06-30)
+
+### Tally
+
+| Ticket | Tests | Status |
+| --- | --- | --- |
+| BK-166 | 8 | ✅ PASS |
+| BK-4 | 4 | ✅ PASS |
+| BK-8 | 4 | ✅ PASS |
+| BK-17 | 6 | ✅ PASS |
+| BK-14 | 5 | ✅ PASS |
+| BK-18 (prev) | 17 | ✅ PASS |
+| ***Total**** | ****44 + 1 fixme*** |  |
+
+### Infrastructure changes
+
+- ***loginEndpoint**** fixed: `/auth/login` → `/api/v1/auth/signin`. The old endpoint 404s (BK-177). The BK-166 endpoint works. ****Integration project is now unblocked.***
+- ***AuthApi*** updated to use sign-in PAT (not session token) for API auth — matches BK-166 coexistence pattern.
+- ***meEndpoint*** fixed to `/api/v1/me` (actual path).
+- ***auth.types.ts*** updated to match real API response shapes.
+- ***jira-attach-evidence.ts*** script created for attaching screenshots to Jira tickets via REST API.
+
+### CI/CD
+
+- All tests pass in sandbox project. Allure reports at:
+
+  https://nelgoez.github.io/bunkai-qa-engineering/staging/sanity/
+
+### Known gaps (unchanged)
+
+- BK-150 403 scope test — blocked on restricted-scope PAT
+- Sandbox → `.test.ts` promotion — now feasible since api-setup works
+- Nightly regression doesn't include sandbox tests yet (PR gate + manual only)
+
+### Next-step candidates
+
+| Priority | Ticket | Summary | Est. time |
+| --- | --- | --- | --- |
+| 1 | BK-182 | Bearer run can't resolve active workspace | ~15 min |
+| 2 | BK-22 | ATC "Used in N tests" report | ~15 min |
+| 3 | BK-57 | PATCH /modules/{id} atomicity | ~20 min |
+| 4 | BK-36 | Abort a run in progress | ~20 min |
+
+---
+
 
 _Synced from Jira by sync-jira-issues_

@@ -3,7 +3,7 @@
 **Jira Key:** [BK-96](https://jira.upexgalaxy.com/browse/BK-96)
 **Priority:** High
 **Status:** Cerrada
-**Components:** None
+**Components:** ATC Library (Acceptance Test Cases)
 
 ---
 
@@ -56,7 +56,7 @@ The happy-path edit endpoint `PATCH /api/v1/atcs/{id}`, called with the ***corre
 ## Metadata
 
 - **Created:** 6/8/2026
-- **Updated:** 6/9/2026
+- **Updated:** 6/26/2026
 - **Reporter:** Ely
 - **Assignee:** Unassigned
 - **Labels:** api, atc, bug

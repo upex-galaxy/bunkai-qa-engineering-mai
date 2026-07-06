@@ -3,7 +3,7 @@
 **Jira Key:** [BK-15](https://jira.upexgalaxy.com/browse/BK-15)
 **Epic:** [BK-12](https://jira.upexgalaxy.com/browse/BK-12) (User Stories & Acceptance Criteria)
 **Type:** Historia
-**Status:** QA Approved
+**Status:** Ready For Release
 **Priority:** Medium
 **Story Points:** 3
 **Web Link:** https://staging-upexbunkai.vercel.app/
@@ -48,7 +48,7 @@
 
 ### Defect (1)
 
-- [BK-143](https://jira.upexgalaxy.com/browse/BK-143): AC Management: Description Validation: Byte cap enforces 50,000 bytes (decimal) instead of 51,200 bytes (binary KiB) _(Abierta)_
+- [BK-143](https://jira.upexgalaxy.com/browse/BK-143): AC Management: Description Validation: Byte cap enforces 50,000 bytes (decimal) instead of 51,200 bytes (binary KiB) _(Cerrada)_
 
 ### Historias (3)
 
@@ -61,7 +61,7 @@
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/19/2026
+- **Updated:** 7/5/2026
 - **Reporter:** Ely
 - **Assignee:** maibeth vega
 - **Labels:** acceptance-criteria, mvp, shift-left-reviewed, wave-2

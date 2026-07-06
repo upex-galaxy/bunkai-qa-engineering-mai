@@ -1,9 +1,9 @@
 # BUG: [BK-5] BUG-CRIT-3: Role overwrite on accept — workspace_members.upsert demotes existing owner/member
 
 **Jira Key:** [BK-62](https://jira.upexgalaxy.com/browse/BK-62)
-**Priority:** Medium
+**Priority:** Highest
 **Status:** Cerrada
-**Components:** None
+**Components:** Tenancy & Identity
 
 ---
 
@@ -67,7 +67,7 @@ Check existing role before upsert. If existing row has higher role, preserve it 
 ## Metadata
 
 - **Created:** 6/5/2026
-- **Updated:** 6/10/2026
+- **Updated:** 6/26/2026
 - **Reporter:** Nahuel Gomez
 - **Assignee:** Ely
 

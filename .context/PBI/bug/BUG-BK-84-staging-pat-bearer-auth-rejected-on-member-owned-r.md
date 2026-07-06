@@ -3,7 +3,7 @@
 **Jira Key:** [BK-84](https://jira.upexgalaxy.com/browse/BK-84)
 **Priority:** Highest
 **Status:** Cerrada
-**Components:** None
+**Components:** Tenancy & Identity
 
 ---
 
@@ -92,7 +92,7 @@ Not yet confirmed -- pending dev triage. Best current hypothesis: environment/co
 ## Metadata
 
 - **Created:** 6/7/2026
-- **Updated:** 6/15/2026
+- **Updated:** 6/26/2026
 - **Reporter:** Andrés Daniel Cumare Morales
 - **Assignee:** Andrés Daniel Cumare Morales
 - **Labels:** auth, blocker, bug, integration, staging

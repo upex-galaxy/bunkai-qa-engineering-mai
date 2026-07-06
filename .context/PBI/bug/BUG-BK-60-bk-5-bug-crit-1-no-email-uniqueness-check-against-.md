@@ -1,9 +1,9 @@
 # BUG: [BK-5] BUG-CRIT-1: No email uniqueness check against active workspace members in POST /invites
 
 **Jira Key:** [BK-60](https://jira.upexgalaxy.com/browse/BK-60)
-**Priority:** Medium
+**Priority:** Highest
 **Status:** Cerrada
-**Components:** None
+**Components:** Tenancy & Identity
 
 ---
 
@@ -49,7 +49,7 @@ Security boundary breach: members receive duplicate invite tokens. Could enable 
 ## Metadata
 
 - **Created:** 6/5/2026
-- **Updated:** 6/10/2026
+- **Updated:** 6/26/2026
 - **Reporter:** Nahuel Gomez
 - **Assignee:** Ely
 

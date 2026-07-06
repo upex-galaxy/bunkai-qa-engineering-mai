@@ -47,7 +47,7 @@
 ### Historias (3)
 
 - [BK-9](https://jira.upexgalaxy.com/browse/BK-9): TMS-Module | Create modules with nested sub-modules _(QA Approved)_
-- [BK-15](https://jira.upexgalaxy.com/browse/BK-15): TMS-AC | Manage criteria under a user story _(QA Approved)_
+- [BK-15](https://jira.upexgalaxy.com/browse/BK-15): TMS-AC | Manage criteria under a user story _(Ready For Release)_
 - [BK-17](https://jira.upexgalaxy.com/browse/BK-17): Jira Import | Pull Jira issues by JQL _(QA Approved)_
 
 ---
@@ -55,7 +55,7 @@
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/8/2026
+- **Updated:** 6/30/2026
 - **Reporter:** Ely
 - **Assignee:** Samuel Amonzabel
 - **Labels:** mvp, user-stories, wave-2

@@ -82,5 +82,52 @@ Merged to staging and deployed. Ready for testing on staging.
 
 ---
 
+### Nahuel Gomez - 6/30/2026, 11:14:37 PM
+
+## QA Automation Session — Complete Report (2026-06-30)
+
+### Tally
+
+| Ticket | Tests | Status |
+| --- | --- | --- |
+| BK-166 | 8 | ✅ PASS |
+| BK-4 | 4 | ✅ PASS |
+| BK-8 | 4 | ✅ PASS |
+| BK-17 | 6 | ✅ PASS |
+| BK-14 | 5 | ✅ PASS |
+| BK-18 (prev) | 17 | ✅ PASS |
+| ***Total**** | ****44 + 1 fixme*** |  |
+
+### Infrastructure changes
+
+- ***loginEndpoint**** fixed: `/auth/login` → `/api/v1/auth/signin`. The old endpoint 404s (BK-177). The BK-166 endpoint works. ****Integration project is now unblocked.***
+- ***AuthApi*** updated to use sign-in PAT (not session token) for API auth — matches BK-166 coexistence pattern.
+- ***meEndpoint*** fixed to `/api/v1/me` (actual path).
+- ***auth.types.ts*** updated to match real API response shapes.
+- ***jira-attach-evidence.ts*** script created for attaching screenshots to Jira tickets via REST API.
+
+### CI/CD
+
+- All tests pass in sandbox project. Allure reports at:
+
+  https://nelgoez.github.io/bunkai-qa-engineering/staging/sanity/
+
+### Known gaps (unchanged)
+
+- BK-150 403 scope test — blocked on restricted-scope PAT
+- Sandbox → `.test.ts` promotion — now feasible since api-setup works
+- Nightly regression doesn't include sandbox tests yet (PR gate + manual only)
+
+### Next-step candidates
+
+| Priority | Ticket | Summary | Est. time |
+| --- | --- | --- | --- |
+| 1 | BK-182 | Bearer run can't resolve active workspace | ~15 min |
+| 2 | BK-22 | ATC "Used in N tests" report | ~15 min |
+| 3 | BK-57 | PATCH /modules/{id} atomicity | ~20 min |
+| 4 | BK-36 | Abort a run in progress | ~20 min |
+
+---
+
 
 _Synced from Jira by sync-jira-issues_

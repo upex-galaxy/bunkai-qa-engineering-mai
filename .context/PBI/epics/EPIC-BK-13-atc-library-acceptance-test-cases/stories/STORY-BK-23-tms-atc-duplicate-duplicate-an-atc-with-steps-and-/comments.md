@@ -229,5 +229,78 @@ Recommendation: keep [https://jira.upexgalaxy.com/browse/BK-23#icft=BK-23](https
 
 ---
 
+### Automation for Jira - 6/20/2026, 12:03:01 PM
+
+🔎 Pull Request created. Task is pending to ANALYZE and REVIEW by the team. Waiting for PR Approval.
+
+---
+
+### Automation for Jira - 6/20/2026, 12:03:07 PM
+
+✅ Pull Request is successfully MERGED. Task is Done.
+
+---
+
+### Benjamin Segovia - 6/22/2026, 10:40:01 AM
+
+## QA session paused — blocked by BK-175
+
+QA started a sprint-testing session on this story today but could not reach the ATC library to verify any of the 4 ACs.
+
+> ***WARNING:**** ****Blocker******:**** the staging login flow (magic-link) is broken — the OTP email has no matching code-entry field on the "Check your inbox" screen. Filed as ****BK-175**** (links as **Blocks* this story). Confirmed by reproducing twice with independent OTP emails; see BK-175 for full repro + evidence.
+
+***Separately, worth a check once unblocked******:*** a static review of `upex-bunkai-tms` (git log + branches) found no commits, routes, migrations, or RPC related to duplicating an ATC, despite automated comments on this ticket reporting a PR merged on 2026-06-20. Please confirm the feature is actually deployed to staging before QA resumes — testing against code that isn't there would just waste another pass.
+
+***Status******:**** leaving this ticket at **Ready For QA* — nothing about the duplicate-ATC feature itself has been disproven, we simply couldn't reach it. QA will resume once BK-175 is resolved and the deployment status above is confirmed.
+
+---
+
+### Ely - 6/24/2026, 3:49:03 PM
+
+Dev clarification: the ATC Duplicate feature IS merged to staging — PR #45, merge commit 5f02be9 (files app/api/v1/atcs/[id]/duplicate, migration 0028, tests). The "PR merged" automation that fired earlier was correct for this ticket. It was also blocked by BK-175 on the QA side. If staging shows no feature, this is a staging DEPLOYMENT/refresh gap (cf. BK-142 Vercel staging env), not missing code — please re-verify against the latest staging deploy before sending back to Dev.
+
+---
+
+### Benjamin Segovia - 6/28/2026, 7:32:16 PM
+
+QA Testing Complete - BK-23
+
+Environment: Staging (https://staging-upexbunkai.vercel.app)
+Result: FAILED (14/18 TCs — 1 FAILED, 2 BLOCKED)
+
+TEST DATA USED:
+
+- ATC: "Login happy path" (created via API during session)
+
+VERIFIED BEHAVIORS:
+
+- AC1: Steps and assertions fully copied to duplicate — VERIFIED (API)
+- AC2: Default title = source + "(copy)" — VERIFIED
+- AC3: Title boundary validation (3–200 chars) — VERIFIED
+- AC4: Copy independence — editing copy does not change original — VERIFIED (API)
+
+FAILED VERIFICATION:
+
+- AC3 (TC11): Custom title via new_title field — FAILED
+
+  Expected: {"new_title":"Custom Title"} applies the custom title per FR-014
+  Actual: new_title silently ignored; default title applied; no error signal
+  Impact: API clients following the spec get wrong title with no feedback
+
+DEFECTS:
+
+- BK-185: ATC Library: Duplicate: No UI Duplicate action (MAJOR — DoD blocker)
+- BK-184: ATC Library: Duplicate: API field name mismatch new_title vs title (MEDIUM)
+
+OBSERVATIONS:
+
+- DB leg not executed: staging-dhhub MCP not configured (DBHUB_* empty in .env)
+- TC02/TC03 BLOCKED: 0-step ATC test data cannot be created via UI
+
+Artifacts: ATP (customfield*10067), ATR (customfield*10147)
+Next: Fix BK-185 (UI action) + BK-184 (field name) → re-test Stage 2 on failed TCs
+
+---
+
 
 _Synced from Jira by sync-jira-issues_

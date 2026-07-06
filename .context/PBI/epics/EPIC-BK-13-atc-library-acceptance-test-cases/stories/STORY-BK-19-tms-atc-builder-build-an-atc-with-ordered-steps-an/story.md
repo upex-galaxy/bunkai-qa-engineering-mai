@@ -69,7 +69,7 @@
 
 - [BK-144](https://jira.upexgalaxy.com/browse/BK-144): ATC builder — tag input remains enabled at 10-tag maximum instead of being disabled _(Abierta)_
 - [BK-145](https://jira.upexgalaxy.com/browse/BK-145): ATC builder — mapApiError does not handle validation_failed + too_small shows generic error instead of field-level message for short title _(Abierta)_
-- [BK-146](https://jira.upexgalaxy.com/browse/BK-146): ATC builder — module outside project subtree returns 404 not_found instead of 422 module_outside_project_subtree _(Abierta)_
+- [BK-146](https://jira.upexgalaxy.com/browse/BK-146): ATC builder — module outside project subtree returns 404 not_found instead of 422 module_outside_project_subtree _(Cerrada)_
 
 ### Historia (1)
 

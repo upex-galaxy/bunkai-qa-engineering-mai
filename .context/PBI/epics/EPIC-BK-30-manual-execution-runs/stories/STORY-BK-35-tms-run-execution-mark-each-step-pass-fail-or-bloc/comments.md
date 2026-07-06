@@ -49,5 +49,11 @@ Gracias!
 
 ---
 
+### Ely - 6/24/2026, 3:48:24 PM
+
+Re-estimated 1 -> 5 SP per shift-left QA (state machine, real-time sync, race conditions). Provisional — still BLOCKED for Ready For Dev by 2 open questions: Q1 (PO) ATC verdict behavior when steps remain pending; Q5 (Dev) real-time transport mechanism + latency SLA.
+
+---
+
 
 _Synced from Jira by sync-jira-issues_

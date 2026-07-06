@@ -1,9 +1,9 @@
 # BUG: [BK-5] BUG-CRIT-2: No email uniqueness check against pending invites — duplicate invites allowed
 
 **Jira Key:** [BK-61](https://jira.upexgalaxy.com/browse/BK-61)
-**Priority:** Medium
+**Priority:** High
 **Status:** Cerrada
-**Components:** None
+**Components:** Tenancy & Identity
 
 ---
 
@@ -54,7 +54,7 @@ No DB unique constraint on (workspace_id, lower(email)) for pending invites, and
 ## Metadata
 
 - **Created:** 6/5/2026
-- **Updated:** 6/10/2026
+- **Updated:** 6/26/2026
 - **Reporter:** Nahuel Gomez
 - **Assignee:** Ely
 

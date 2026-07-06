@@ -3,7 +3,7 @@
 **Jira Key:** [BK-43](https://jira.upexgalaxy.com/browse/BK-43)
 **Epic:** [BK-31](https://jira.upexgalaxy.com/browse/BK-31) (Bugs & Defect Heatmap)
 **Type:** Historia
-**Status:** Backlog
+**Status:** Estimation
 **Priority:** Medium
 **Story Points:** 1
 **Web Link:** https://staging-upexbunkai.vercel.app/
@@ -41,6 +41,7 @@
 - [Scope](./scope.md)
 - [Out Of Scope](./out-of-scope.md)
 - [Workflow](./workflow.md)
+- [Acceptance Test Plan (QA)](./acceptance-test-plan.md)
 
 ---
 
@@ -55,9 +56,10 @@
 ## Metadata
 
 - **Created:** 5/28/2026
-- **Updated:** 6/30/2026
+- **Updated:** 7/3/2026
 - **Reporter:** Ely
 - **Assignee:** Nahuel Gomez
+- **Labels:** shift-left-2026-07-03, shift-left-reviewed
 
 ---
 
