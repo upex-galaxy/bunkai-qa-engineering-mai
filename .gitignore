@@ -142,3 +142,4 @@ dbhub.local.toml
 
 # ----- 2026-07-06 (sync) -----
 /.allure/
+/.agents/prompts/

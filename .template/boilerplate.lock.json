@@ -4,8 +4,8 @@
   "templateCommit": "1441165aa14c13b998ae38265d67b0b55cf24f60",
   "perComponentCommit": {
     "commands": "07bc0347bffa83bfc8f449039eccd47e06098532",
-    "scripts": "b08266ac907637e6d74539d0f396481336dcf113",
-    "docs": "b08266ac907637e6d74539d0f396481336dcf113",
+    "scripts": "be9bdb609671c22d7940e3858fb8fb85f362a5ba",
+    "docs": "be9bdb609671c22d7940e3858fb8fb85f362a5ba",
     "cli": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "vscode": "06f22a35ba95efd9ea9ccdeeb1e7cfd89685b689",
     "husky": "b08266ac907637e6d74539d0f396481336dcf113",
@@ -13,7 +13,7 @@
     "claude-config": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "tooling": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "env-template": "b08266ac907637e6d74539d0f396481336dcf113",
-    "skills": "07bc0347bffa83bfc8f449039eccd47e06098532"
+    "skills": "be9bdb609671c22d7940e3858fb8fb85f362a5ba"
   },
   "syncedComponents": [],
   "ignoreFileSync": {
@@ -25,10 +25,11 @@
       ]
     },
     ".gitignore": {
-      "lastSyncedSha": "490bb04ca75f3fcf0c3d053ae0b4a19d416ed10f",
+      "lastSyncedSha": "f52255194b1b13012d8dbafc6dcaf20d7ce49ccd",
       "appendedLines": [
         ".template/claude-md.upstream.sha",
-        "/.allure/"
+        "/.allure/",
+        "/.agents/prompts/"
       ]
     }
   },
@@ -49,6 +50,6 @@
     }
   },
   "cliVersion": "7.0",
-  "lastSyncedAt": "2026-07-06T00:34:00.480Z",
+  "lastSyncedAt": "2026-07-06T22:02:02.664Z",
   "variableSystemVersion": 1
 }
