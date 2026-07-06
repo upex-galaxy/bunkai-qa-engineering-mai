@@ -97,3 +97,6 @@ docs/mcp/
 # ===== Synced from boilerplate v7.0 =====
 # ----- 2026-06-08 (sync) -----
 .backups/
+
+# ----- 2026-07-06 (sync) -----
+packages/decks/

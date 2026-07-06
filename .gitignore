@@ -139,3 +139,6 @@ dbhub.local.toml
 # ===== Synced from boilerplate v7.0 =====
 # ----- 2026-06-30 (sync) -----
 .template/claude-md.upstream.sha
+
+# ----- 2026-07-06 (sync) -----
+/.allure/

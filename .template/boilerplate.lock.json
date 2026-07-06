@@ -3,7 +3,7 @@
   "templateRepo": "upex-galaxy/agentic-qa-boilerplate",
   "templateCommit": "1441165aa14c13b998ae38265d67b0b55cf24f60",
   "perComponentCommit": {
-    "commands": "b08266ac907637e6d74539d0f396481336dcf113",
+    "commands": "07bc0347bffa83bfc8f449039eccd47e06098532",
     "scripts": "b08266ac907637e6d74539d0f396481336dcf113",
     "docs": "b08266ac907637e6d74539d0f396481336dcf113",
     "cli": "1441165aa14c13b998ae38265d67b0b55cf24f60",
@@ -13,38 +13,42 @@
     "claude-config": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "tooling": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "env-template": "b08266ac907637e6d74539d0f396481336dcf113",
-    "skills": "b08266ac907637e6d74539d0f396481336dcf113"
+    "skills": "07bc0347bffa83bfc8f449039eccd47e06098532"
   },
   "syncedComponents": [],
   "ignoreFileSync": {
     ".prettierignore": {
-      "lastSyncedSha": "c458761b1ac4605ca54f82dcf30411797bfc6b0a",
+      "lastSyncedSha": "642f57f0d23c79095d66c0edd02994c983ec7ca9",
       "appendedLines": [
-        ".backups/"
+        ".backups/",
+        "packages/decks/"
       ]
     },
     ".gitignore": {
-      "lastSyncedSha": "f3184f5cef1aeb34e57079198388edbda3df5427",
+      "lastSyncedSha": "490bb04ca75f3fcf0c3d053ae0b4a19d416ed10f",
       "appendedLines": [
-        ".template/claude-md.upstream.sha"
+        ".template/claude-md.upstream.sha",
+        "/.allure/"
       ]
     }
   },
   "packageJsonSync": {
     "package.json": {
       "scripts": {
-        "lastSyncedSha": "da8e0cd10ebee88a102e5595a478f92580b48ea1",
+        "lastSyncedSha": "a5f848544f56080ceff9a25cade06ccd4b05a35d",
         "appliedKeys": [
           "env"
         ]
       },
       "devDependencies": {
-        "lastSyncedSha": "da8e0cd10ebee88a102e5595a478f92580b48ea1",
-        "appliedKeys": []
+        "lastSyncedSha": "a5f848544f56080ceff9a25cade06ccd4b05a35d",
+        "appliedKeys": [
+          "allure-js-commons"
+        ]
       }
     }
   },
   "cliVersion": "7.0",
-  "lastSyncedAt": "2026-06-30T22:51:19.072Z",
+  "lastSyncedAt": "2026-07-06T00:34:00.480Z",
   "variableSystemVersion": 1
 }
