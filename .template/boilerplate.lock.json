@@ -4,7 +4,7 @@
   "templateCommit": "1441165aa14c13b998ae38265d67b0b55cf24f60",
   "perComponentCommit": {
     "commands": "07bc0347bffa83bfc8f449039eccd47e06098532",
-    "scripts": "be9bdb609671c22d7940e3858fb8fb85f362a5ba",
+    "scripts": "11dc054a68dedcc01cf8e4635fff8a42ab18e8d7",
     "docs": "be9bdb609671c22d7940e3858fb8fb85f362a5ba",
     "cli": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "vscode": "06f22a35ba95efd9ea9ccdeeb1e7cfd89685b689",
@@ -13,7 +13,7 @@
     "claude-config": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "tooling": "1441165aa14c13b998ae38265d67b0b55cf24f60",
     "env-template": "b08266ac907637e6d74539d0f396481336dcf113",
-    "skills": "be9bdb609671c22d7940e3858fb8fb85f362a5ba"
+    "skills": "11dc054a68dedcc01cf8e4635fff8a42ab18e8d7"
   },
   "syncedComponents": [],
   "ignoreFileSync": {
@@ -50,6 +50,6 @@
     }
   },
   "cliVersion": "7.0",
-  "lastSyncedAt": "2026-07-06T22:02:02.664Z",
+  "lastSyncedAt": "2026-07-10T20:36:00.091Z",
   "variableSystemVersion": 1
 }

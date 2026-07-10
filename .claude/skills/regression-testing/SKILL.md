@@ -497,6 +497,7 @@ On Verdict = NO-GO with regressions still being filed as issues, archive WAITS u
 - **Sanity + `grep` and `test_file` are mutually exclusive.** Passing both makes the workflow ignore one silently. Pick one.
 - **Video recording inflates artifact size by 5-10x.** Only enable `video_record=true` when debugging flakiness or capturing bug evidence. Never enable it for nightly regression.
 - **CI credentials come from GitHub secrets, not `.env`.** Do not copy values from local `.env` into workflow YAML — reference `${{ secrets.NAME }}` only.
+- **Session-footer contract (mandatory at close).** The final phase is not done until the two chat-facing blocks from `../agentic-qa-core/references/session-footer-contract.md` are printed: (1) consolidated screenshot list — repo-relative paths, verified on disk, bug annotations first — plus in-flow surfacing of every capture's path the instant it lands; (2) Session Footer listing skills/MCPs/CLIs actually used + testing levels touched, with explicit "none" entries for expected-but-untouched levels. Framing for this skill: execution. Multi-subagent sessions: each stage report carries the five footer fields (`skills_loaded`, `mcps_used`, `clis_used`, `testing_levels_touched`, `screenshots_captured`); the orchestrator compiles the footer ONCE at close. Chat only — never in a Jira comment or ATR body.
 
 ---
 
@@ -504,6 +505,7 @@ On Verdict = NO-GO with regressions still being filed as issues, archive WAITS u
 
 * **Configuring or debugging GitHub Actions workflows** — read `references/ci-cd-integration.md`
 * **Enabling GitHub Pages so the published Allure reports are browsable ("set up GitHub Pages", "report URL is 404", "publish the reports site")** — read `references/github-pages-setup.md` (enable via `gh api`, first-build stuck/errored gotcha + manual rebuild, gh-pages history squash job). Run the §Allure version-currency check first.
+* **Making CI reports PRIVATE ("reports must be login-protected", "no publiques evidencia pública", "protege los reportes")** — read `references/private-hosting-setup.md` (Test Report Portal: Vercel + Supabase + private R2, work-email login, portal-side retention, history round-trip replacing gh-pages). The publish step in all three suite workflows is already dual-mode — you only wire secrets. GitHub Enterprise orgs have a zero-infra shortcut (Pages visibility → Private); offer it first.
 * **Setting up Allure locally for the first time, or the user asks "is Allure up to date?"** — run the §Allure version-currency check under §Local reporting.
 * **Classifying a borderline failure (REGRESSION vs FLAKY vs ENVIRONMENT)** — read `references/failure-classification.md`
 * **TMS / Xray result import** — load `/xray-cli` skill
