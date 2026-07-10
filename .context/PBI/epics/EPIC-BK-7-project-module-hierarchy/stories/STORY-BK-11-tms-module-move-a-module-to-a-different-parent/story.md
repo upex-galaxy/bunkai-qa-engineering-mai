@@ -46,7 +46,7 @@
 
 ### Historia (1)
 
-- [BK-9](https://jira.upexgalaxy.com/browse/BK-9): TMS-Module | Create modules with nested sub-modules _(QA Approved)_
+- [BK-9](https://jira.upexgalaxy.com/browse/BK-9): TMS-Module | Create modules with nested sub-modules _(Ready For Release)_
 
 ---
 

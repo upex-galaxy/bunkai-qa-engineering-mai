@@ -3,9 +3,9 @@
 **Jira Key:** [BK-45](https://jira.upexgalaxy.com/browse/BK-45)
 **Epic:** [BK-44](https://jira.upexgalaxy.com/browse/BK-44) (Coverage & Traceability)
 **Type:** Historia
-**Status:** Estimation
+**Status:** Ready For Dev
 **Priority:** Medium
-**Story Points:** -
+**Story Points:** 8
 **Web Link:** https://staging-upexbunkai.vercel.app/
 
 ---
@@ -46,9 +46,9 @@ As a QA Lead, I want to open any user story and see its full evidence chain — 
 ## Metadata
 
 - **Created:** 6/1/2026
-- **Updated:** 6/11/2026
+- **Updated:** 7/7/2026
 - **Reporter:** Ely
-- **Assignee:** Benjamin Segovia
+- **Assignee:** Ely
 - **Labels:** shift-left-2026-06-11, shift-left-reviewed
 
 ---

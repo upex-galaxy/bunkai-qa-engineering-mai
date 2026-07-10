@@ -158,7 +158,7 @@ Archived/soft-deleted module defects are hidden by default in BK-41. A future `i
 ## Metadata
 
 - **Created:** 5/28/2026
-- **Updated:** 6/27/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** shift-left-2026-06-27, shift-left-reviewed

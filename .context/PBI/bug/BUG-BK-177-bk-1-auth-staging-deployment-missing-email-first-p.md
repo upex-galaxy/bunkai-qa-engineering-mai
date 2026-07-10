@@ -51,7 +51,7 @@ This blocks BK-166's QA pass end to end — all 42 planned Stage-1 test outlines
 ## Metadata
 
 - **Created:** 6/23/2026
-- **Updated:** 6/25/2026
+- **Updated:** 7/8/2026
 - **Reporter:** Benjamin Segovia
 - **Assignee:** Benjamin Segovia
 - **Labels:** auth, bug, exploratory-testing

@@ -40,7 +40,7 @@ Surfaced during the BK-32 review as a design-level gap: detail views currently o
 
 ### Historia (1)
 
-- [BK-32](https://jira.upexgalaxy.com/browse/BK-32): TMS-Test View | View a test with all chained ATCs expanded _(QA Approved)_
+- [BK-32](https://jira.upexgalaxy.com/browse/BK-32): TMS-Test View | View a test with all chained ATCs expanded _(Ready For Release)_
 
 ---
 

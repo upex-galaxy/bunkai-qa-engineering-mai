@@ -148,7 +148,7 @@ See comment "Shift-Left Refinement Mirror" on this issue for the full refined AC
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/24/2026
+- **Updated:** 7/7/2026
 - **Reporter:** Ely
 - **Assignee:** Andrés Daniel Cumare Morales
 - **Labels:** auth, mvp, shift-left-2026-05-26, shift-left-reviewed, wave-1

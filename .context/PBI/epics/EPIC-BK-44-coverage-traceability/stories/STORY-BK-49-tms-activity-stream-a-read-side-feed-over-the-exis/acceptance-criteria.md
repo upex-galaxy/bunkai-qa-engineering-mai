@@ -11,6 +11,7 @@
 - ***Given***: Activity has been recorded in the selected workspace using confirmed MVP event writers.
 - ***When***: The QA Lead opens the activity feed from the defined UI entry point.
 - ***Then***: The feed lists events newest-first and each visible entry shows actor, action label, item label, and timestamp.
+
 - ***Evidence basis***: Existing `activity_log` rows and workspace-member RLS are confirmed; UI/read route is not confirmed.
 
 #### Scenario 1.2: Should display only confirmed MVP event types unless PO expands the taxonomy (Type: Positive, Priority: High)

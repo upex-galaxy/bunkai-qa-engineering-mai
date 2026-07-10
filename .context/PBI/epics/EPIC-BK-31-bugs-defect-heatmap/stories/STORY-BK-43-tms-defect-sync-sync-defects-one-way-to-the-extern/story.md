@@ -56,7 +56,7 @@
 ## Metadata
 
 - **Created:** 5/28/2026
-- **Updated:** 7/3/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Nahuel Gomez
 - **Labels:** shift-left-2026-07-03, shift-left-reviewed

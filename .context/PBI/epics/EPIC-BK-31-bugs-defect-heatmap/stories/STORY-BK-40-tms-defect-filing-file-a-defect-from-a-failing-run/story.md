@@ -98,7 +98,7 @@ Ready for estimation after expert-panel refinement. QA recommends 5 SP with conf
 ## Metadata
 
 - **Created:** 5/28/2026
-- **Updated:** 6/17/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** shift-left-2026-06-17, shift-left-reviewed

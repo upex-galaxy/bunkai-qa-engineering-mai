@@ -3,9 +3,9 @@
 **Jira Key:** [BK-49](https://jira.upexgalaxy.com/browse/BK-49)
 **Epic:** [BK-44](https://jira.upexgalaxy.com/browse/BK-44) (Coverage & Traceability)
 **Type:** Historia
-**Status:** Estimation
+**Status:** Ready For Dev
 **Priority:** Medium
-**Story Points:** -
+**Story Points:** 5
 **Web Link:** https://staging-upexbunkai.vercel.app/
 
 ---
@@ -98,7 +98,7 @@ As a QA Lead, I want a live feed of what changed across the workspace — who cr
 ## Metadata
 
 - **Created:** 6/1/2026
-- **Updated:** 6/29/2026
+- **Updated:** 7/8/2026
 - **Reporter:** Ely
 - **Assignee:** José Andrés Lorca
 - **Labels:** new-feature, shift-left-2026-06-29, shift-left-reviewed

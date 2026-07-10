@@ -51,7 +51,7 @@ Use the field name `title` instead of `new_title` in the POST /atcs/{id}/duplica
 ## Metadata
 
 - **Created:** 6/28/2026
-- **Updated:** 6/30/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Benjamin Segovia
 - **Assignee:** Benjamin Segovia
 - **Labels:** atc-library, bug, exploratory-testing

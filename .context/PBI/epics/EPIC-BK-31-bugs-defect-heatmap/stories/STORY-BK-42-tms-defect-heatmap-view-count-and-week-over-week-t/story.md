@@ -92,7 +92,7 @@ Full local package: .context/PBI/epics/EPIC-BK-31-bugs-defect-heatmap/stories/ST
 ## Metadata
 
 - **Created:** 5/28/2026
-- **Updated:** 6/27/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** shift-left-2026-06-27, shift-left-reviewed

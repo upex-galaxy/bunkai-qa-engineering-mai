@@ -3,7 +3,7 @@
 **Jira Key:** [BK-166](https://jira.upexgalaxy.com/browse/BK-166)
 **Epic:** [BK-1](https://jira.upexgalaxy.com/browse/BK-1) (Tenancy & Identity)
 **Type:** Historia
-**Status:** QA Approved
+**Status:** Ready For Release
 **Priority:** Medium
 **Story Points:** -
 
@@ -99,7 +99,7 @@ This adds password as the ***third*** sign-in method on the login screen, alongs
 ## Metadata
 
 - **Created:** 6/21/2026
-- **Updated:** 6/30/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** auth, mvp, shift-left-reviewed, wave-1

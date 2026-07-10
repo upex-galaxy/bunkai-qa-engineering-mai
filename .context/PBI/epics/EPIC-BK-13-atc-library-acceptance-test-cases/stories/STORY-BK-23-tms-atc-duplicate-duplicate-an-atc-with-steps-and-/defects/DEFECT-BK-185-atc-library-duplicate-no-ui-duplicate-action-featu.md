@@ -52,7 +52,7 @@ Call API directly: POST /api/v1/atcs/{source\_id}/duplicate with a valid bearer 
 ## Metadata
 
 - **Created:** 6/28/2026
-- **Updated:** 6/28/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Benjamin Segovia
 - **Assignee:** Benjamin Segovia
 - **Labels:** atc-library, bug, exploratory-testing

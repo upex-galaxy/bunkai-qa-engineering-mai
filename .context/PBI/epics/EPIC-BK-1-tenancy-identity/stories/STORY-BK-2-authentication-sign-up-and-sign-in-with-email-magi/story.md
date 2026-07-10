@@ -155,7 +155,7 @@ For Design (2):
 
 ### Historia (1)
 
-- [BK-166](https://jira.upexgalaxy.com/browse/BK-166): Authentication | Sign up and sign in with email and password _(QA Approved)_
+- [BK-166](https://jira.upexgalaxy.com/browse/BK-166): Authentication | Sign up and sign in with email and password _(Ready For Release)_
 
 ---
 

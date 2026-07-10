@@ -3,9 +3,9 @@
 **Jira Key:** [BK-48](https://jira.upexgalaxy.com/browse/BK-48)
 **Epic:** [BK-44](https://jira.upexgalaxy.com/browse/BK-44) (Coverage & Traceability)
 **Type:** Historia
-**Status:** Estimation
+**Status:** Shift-Left QA
 **Priority:** Medium
-**Story Points:** -
+**Story Points:** 3
 **Web Link:** https://staging-upexbunkai.vercel.app/
 
 ---
@@ -68,11 +68,14 @@ As a Senior QA Engineer, I want to filter the evidence chain by result, module a
 - [Acceptance Criteria](./acceptance-criteria.md)
 - [Scope](./scope.md)
 - [Out Of Scope](./out-of-scope.md)
-- [Acceptance Test Plan (QA)](./acceptance-test-plan.md)
 
 ---
 
 ## Traceability
+
+### Test (1)
+
+- [BK-189](https://jira.upexgalaxy.com/browse/BK-189): Test TMS-Traceability | Filter the chain by verdict, module, and date range _(Borrador)_
 
 ### Epic (1)
 
@@ -83,10 +86,10 @@ As a Senior QA Engineer, I want to filter the evidence chain by result, module a
 ## Metadata
 
 - **Created:** 6/1/2026
-- **Updated:** 6/16/2026
+- **Updated:** 7/9/2026
 - **Reporter:** Ely
-- **Assignee:** Benjamin Segovia
-- **Labels:** new-feature, shift-left-2026-06-16, shift-left-reviewed
+- **Assignee:** pinto.lucas.nahuel
+- **Labels:** new-feature, shift-left-2026-06-16, shift-left-reviewed, sprint-planning-estimated
 
 ---
 

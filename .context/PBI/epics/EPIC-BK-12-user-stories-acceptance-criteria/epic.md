@@ -3,7 +3,7 @@
 **Jira Key:** [BK-12](https://jira.upexgalaxy.com/browse/BK-12)
 **Priority:** Medium
 **Status:** Planificación
-**Total Story Points:** 24
+**Total Story Points:** 3
 
 ---
 
@@ -65,10 +65,7 @@ MVP runs on the built stack: ***Next.js 15 App Router**** (API routes under `app
 
 | Key | Story | Points | Priority | Status |
 | --- | ----- | ------ | -------- | ------ |
-| [BK-14](https://jira.upexgalaxy.com/browse/BK-14) | TMS-US | Manage user stories anchored to a module | 3 | Medium | Ready For QA |
-| [BK-15](https://jira.upexgalaxy.com/browse/BK-15) | TMS-AC | Manage criteria under a user story | 3 | Medium | Ready For Release |
-| [BK-16](https://jira.upexgalaxy.com/browse/BK-16) | Markdown Editor | Write and preview Markdown safely | 13 | Medium | QA Approved |
-| [BK-17](https://jira.upexgalaxy.com/browse/BK-17) | Jira Import | Pull Jira issues by JQL | 5 | Medium | QA Approved |
+| [BK-14](https://jira.upexgalaxy.com/browse/BK-14) | TMS-US | Manage user stories anchored to a module | 3 | Medium | QA Approved |
 
 ---
 

@@ -75,7 +75,7 @@ After successful sign-out, the user should be immediately redirected to `/login`
 ## Metadata
 
 - **Created:** 6/23/2026
-- **Updated:** 6/26/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Andrés Daniel Cumare Morales
 - **Assignee:** Andrés Daniel Cumare Morales
 - **Labels:** account-settings, bug, exploratory-testing

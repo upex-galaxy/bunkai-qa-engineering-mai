@@ -3,7 +3,7 @@
 **Jira Key:** [BK-19](https://jira.upexgalaxy.com/browse/BK-19)
 **Epic:** [BK-13](https://jira.upexgalaxy.com/browse/BK-13) (ATC Library (Acceptance Test Cases))
 **Type:** Historia
-**Status:** QA Approved
+**Status:** Ready For Release
 **Priority:** Medium
 **Story Points:** 5
 **Web Link:** https://staging-upexbunkai.vercel.app/
@@ -73,14 +73,14 @@
 
 ### Historia (1)
 
-- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(QA Approved)_
+- [BK-18](https://jira.upexgalaxy.com/browse/BK-18): TMS-ATC API | Create and edit ATCs with steps and assertions _(Ready For Release)_
 
 ---
 
 ## Metadata
 
 - **Created:** 5/19/2026
-- **Updated:** 6/19/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** maibeth vega
 - **Labels:** atc, frontend, mvp, shift-left-2026-06-05, shift-left-2026-06-18, shift-left-reviewed, ui, wave-2

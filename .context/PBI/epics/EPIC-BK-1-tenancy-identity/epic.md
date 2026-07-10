@@ -3,7 +3,7 @@
 **Jira Key:** [BK-1](https://jira.upexgalaxy.com/browse/BK-1)
 **Priority:** Medium
 **Status:** Planificación
-**Total Story Points:** 31
+**Total Story Points:** 8
 
 ---
 
@@ -107,12 +107,7 @@ Per-story acceptance criteria live in Gherkin form on each child story. Edge cas
 
 | Key | Story | Points | Priority | Status |
 | --- | ----- | ------ | -------- | ------ |
-| [BK-2](https://jira.upexgalaxy.com/browse/BK-2) | Authentication | Sign up and sign in with email magic-link | 5 | Medium | Ready For Release |
 | [BK-3](https://jira.upexgalaxy.com/browse/BK-3) | Authentication | Sign up and sign in via OAuth (GitHub / Google) | 8 | Medium | Ready For QA |
-| [BK-4](https://jira.upexgalaxy.com/browse/BK-4) | TMS-Workspace | Create a workspace | - | Medium | Ready For Release |
-| [BK-5](https://jira.upexgalaxy.com/browse/BK-5) | TMS-Workspace | Invite a teammate with a role | 13 | Medium | QA Approved |
-| [BK-6](https://jira.upexgalaxy.com/browse/BK-6) | TMS-Workspace | Switch between workspaces | 5 | Medium | QA Approved |
-| [BK-166](https://jira.upexgalaxy.com/browse/BK-166) | Authentication | Sign up and sign in with email and password | - | Medium | QA Approved |
 
 ---
 

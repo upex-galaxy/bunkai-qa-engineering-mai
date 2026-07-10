@@ -48,7 +48,7 @@ As a QA Lead (Mateo Silva) I want to see every workspace I belong to with my rol
 ## Metadata
 
 - **Created:** 6/7/2026
-- **Updated:** 6/24/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** shift-left-2026-06-10, shift-left-reviewed

@@ -41,7 +41,7 @@ As a QA Lead, I want to see the acceptance criteria and modules that have no tes
 ## Metadata
 
 - **Created:** 6/1/2026
-- **Updated:** 6/27/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Carlos Alberto Chiavassa
 - **Labels:** new-feature, shift-left-2026-06-26, shift-left-reviewed

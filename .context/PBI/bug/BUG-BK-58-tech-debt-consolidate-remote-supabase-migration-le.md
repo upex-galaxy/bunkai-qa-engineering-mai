@@ -2,7 +2,7 @@
 
 **Jira Key:** [BK-58](https://jira.upexgalaxy.com/browse/BK-58)
 **Priority:** Lowest
-**Status:** Ready For QA
+**Status:** Cerrada
 **Components:** Project & Module Hierarchy
 
 ---
@@ -16,7 +16,7 @@ Remote Supabase ledger has 3 entries (module*soft*delete, module*update*fn*param
 ## Metadata
 
 - **Created:** 6/4/2026
-- **Updated:** 6/25/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 

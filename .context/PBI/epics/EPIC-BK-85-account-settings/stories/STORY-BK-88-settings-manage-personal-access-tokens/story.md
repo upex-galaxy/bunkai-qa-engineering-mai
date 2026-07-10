@@ -96,7 +96,7 @@ As an autonomous AI test agent operator (Karim) I want to issue, list, and revok
 ## Metadata
 
 - **Created:** 6/7/2026
-- **Updated:** 6/25/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** shift-left-2026-06-10, shift-left-reviewed

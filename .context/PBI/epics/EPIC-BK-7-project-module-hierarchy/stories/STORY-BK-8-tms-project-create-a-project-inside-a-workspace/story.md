@@ -78,7 +78,7 @@ As a Workspace member, I want to create a Project inside a Workspace so that I c
 ### Historias (2)
 
 - [BK-4](https://jira.upexgalaxy.com/browse/BK-4): TMS-Workspace | Create a workspace _(Ready For Release)_
-- [BK-9](https://jira.upexgalaxy.com/browse/BK-9): TMS-Module | Create modules with nested sub-modules _(QA Approved)_
+- [BK-9](https://jira.upexgalaxy.com/browse/BK-9): TMS-Module | Create modules with nested sub-modules _(Ready For Release)_
 
 ---
 

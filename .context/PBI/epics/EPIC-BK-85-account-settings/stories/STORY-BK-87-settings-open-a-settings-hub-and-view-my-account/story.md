@@ -33,7 +33,7 @@ As a Full-Stack Developer (Sara Iglesias) I want a Settings area with an Account
 
 ### Historias (3)
 
-- [BK-86](https://jira.upexgalaxy.com/browse/BK-86): Account | View my identity, role, and sign out _(QA Approved)_
+- [BK-86](https://jira.upexgalaxy.com/browse/BK-86): Account | View my identity, role, and sign out _(Ready For Release)_
 - [BK-88](https://jira.upexgalaxy.com/browse/BK-88): Settings | Manage Personal Access Tokens _(Ready For Dev)_
 - [BK-89](https://jira.upexgalaxy.com/browse/BK-89): TMS-Workspace | View the workspaces I belong to _(Ready For Dev)_
 
@@ -42,7 +42,7 @@ As a Full-Stack Developer (Sara Iglesias) I want a Settings area with an Account
 ## Metadata
 
 - **Created:** 6/7/2026
-- **Updated:** 6/14/2026
+- **Updated:** 7/6/2026
 - **Reporter:** Ely
 - **Assignee:** Ely
 - **Labels:** shift-left-2026-06-08, shift-left-reviewed
